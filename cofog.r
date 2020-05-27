@@ -32,13 +32,22 @@ library(ggdark)
 library(rcartocolor)
 library(hrbrthemes)
 
+import_roboto_condensed()
 
 dados_cofog %>%
+  ungroup() %>%
   mutate(descricao_cofog = reorder(descricao_cofog, total_gasto)) %>%
   ggplot() +
-    geom_col(aes(x= descricao_cofog, y= total_gasto)) +
+    geom_col(aes(x= descricao_cofog, y= total_gasto/10^6, fill= descricao_cofog)) +
     coord_flip()+
-  dark_theme_minimal(base_family = font_rc, base_size = 16)
+  dark_theme_minimal(base_family = font_rc, base_size = 16)+
+  scale_fill_carto_d(palette = "Mint", direction = -1, guide = NULL)+
+  scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE))+
+  labs(
+    title = "Expenses on common functions of government",
+    y = "Expenses (R$ mi)",
+    x= "Common functions of government" 
+  )
   
   
   
