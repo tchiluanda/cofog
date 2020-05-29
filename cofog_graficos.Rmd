@@ -1,7 +1,19 @@
+---
+title: "COFOG 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+
+```{r sankey, fig.width=10, fig.height=10}
 library(readxl)
 library(ggplot2)
 library(dplyr)
-COFOG_GC <- read_excel("COFOG/COFOG GC.xlsx", 
+library(networkD3)
+COFOG_GC <- read_excel("COFOG GC.xlsx", 
                        sheet = "despesa_funcao", col_types = c("text", 
                                                                "text", "skip", "skip", "skip", "skip", 
                                                                "skip", "skip", "skip", "skip", "skip"), 
@@ -10,7 +22,7 @@ COFOG_GC <- read_excel("COFOG/COFOG GC.xlsx",
 
 names(COFOG_GC)<- c("codigo_cofog","descricao_cofog")
 
-Base_COFOG_2019_TT <- read_excel("COFOG/Base COFOG 2019 TT.xlsx")
+Base_COFOG_2019_TT <- read_excel("Base COFOG 2019 TT.xlsx")
 
 names(Base_COFOG_2019_TT)[13:14]<-c("valor","codigo_cofog")
 
@@ -94,13 +106,16 @@ links<-
          destination,
          total_gasto)
 
-networkD3::
+
 
 sankeyNetwork(Links = links, Nodes = nodes, Source = "source",
               Target = "destination", Value = "total_gasto", NodeID = "descricao_cofog",
               units = "", fontSize = 12, nodeWidth = 30)
 
+```
 
+
+```{r tree, fig.width=10, fig.height=8}
 dados_tree_view<-
 dados_cofog_raiz %>%
   mutate(raiz= "Gastos com funções de governo") %>%
@@ -110,54 +125,14 @@ dados_cofog_raiz %>%
 library(collapsibleTree)
 
 dados_tree_view%>%
-  mutate(total_gasto = total_gasto /10^9) %>%
+  mutate(`Total gasto` = total_gasto /10^9) %>%
   collapsibleTreeSummary(
     hierarchy = c("descricao_cofog_pai", "descricao_cofog"),
     root = "Gastos com funções de governo",
     width = 800,
-    attribute = "total_gasto",
-    #nodeSize = "total_gasto",
+    attribute = "Total gasto",
+    #nodeSize = "total_norm",
     zoomable = FALSE
   )
 
-
-
-Geography %>%
-  group_by(continent, type) %>%
-  summarize(`Number of Countries` = n()) %>%
-  collapsibleTreeSummary(
-    hierarchy = c("continent", "type"),
-    root = "Geography",
-    width = 800,
-    attribute = "Number of Countries",
-    zoomable = FALSE
-  )
-
-networkD3::
-
-
-write.csv2(dados_cofog, file = "dados_cofog_2019.csv", fileEncoding = "UTF-8")
-
-library(ggdark)
-library(rcartocolor)
-library(hrbrthemes)
-
-import_roboto_condensed()
-
-dados_cofog %>%
-  ungroup() %>%
-  mutate(descricao_cofog = reorder(descricao_cofog, total_gasto)) %>%
-  ggplot() +
-    geom_col(aes(x= descricao_cofog, y= total_gasto/10^9, fill= descricao_cofog)) +
-    coord_flip()+
-  dark_theme_minimal(base_family = font_rc, base_size = 16)+
-  scale_fill_carto_d(palette = "Mint", direction = -1, guide = NULL)+
-  scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE))+
-  labs(
-    title = "Gastos com as funções de governo",
-    y = "Gastos (R$ bi)",
-    x= "Funções de governo" 
-  )
-  
-  
-  
+```
