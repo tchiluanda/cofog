@@ -1,0 +1,161 @@
+---
+title: "Untitled"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(networkD3)
+library(shiny)
+```
+
+Fluxo Gastos COFOG
+=====================================  
+
+Inputs {.sidebar}
+-------------------------------------
+
+```{r}
+# shiny inputs defined here
+
+
+selectInput("ano","Ano",choices = c("2019":"2010"), selected = "2019")
+
+
+
+```
+
+
+
+Column 
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+renderSankeyNetwork({
+  library(readxl)
+  library(ggplot2)
+  library(dplyr)
+  library(networkD3)
+  
+  COFOG_GC <- read_excel("COFOG GC.xlsx", 
+                         sheet = "despesa_funcao", col_types = c("text", 
+                                                                 "text", "skip", "skip", "skip", "skip", 
+                                                                 "skip", "skip", "skip", "skip", "skip"), 
+                         skip = 2)
+  
+  
+  names(COFOG_GC)<- c("codigo_cofog","descricao_cofog")
+  
+  #file<- paste0("Base COFOG-","2017","-TT.xlsx")
+  #file<-"Base-COFOG-2018-TT"
+  file<- paste0("Base-COFOG-",input$ano,"-TT.xlsx")
+  
+  Base_COFOG <- read_excel(file)
+  
+  names(Base_COFOG)[13:14]<-c("valor","codigo_cofog")
+
+  
+  
+  
+  dados_cofog_pai<-
+    Base_COFOG %>%
+    mutate(codigo_cofog = stringr::str_sub(codigo_cofog,1,3)) %>%
+    inner_join( COFOG_GC) %>%
+    mutate(descricao_cofog_pai = "Gastos com funções de governo") %>%
+    group_by(descricao_cofog_pai, descricao_cofog) %>%
+    summarise(
+      total_gasto = sum(valor)
+    )
+  
+  dados_total<-
+    dados_cofog_pai %>%
+    ungroup() %>%
+    mutate(descricao_cofog = descricao_cofog_pai) %>%
+    mutate(descricao_cofog_pai = NA) %>%
+    group_by(descricao_cofog_pai, descricao_cofog) %>%
+    summarise(
+      total_gasto = sum(total_gasto)
+    )
+  
+  
+  
+  
+  dados_cofog_raiz<-  
+    Base_COFOG %>%
+    mutate(codigo_pai = stringr::str_sub(codigo_cofog,1,3)) %>%
+    inner_join( COFOG_GC) %>%
+    mutate(codigo_filho = codigo_cofog) %>%
+    mutate(descricao_cofog_filho = descricao_cofog) %>%
+    mutate(codigo_cofog = codigo_pai) %>%
+    select(codigo_pai,codigo_cofog, descricao_cofog_filho, valor) %>%
+    inner_join( COFOG_GC) %>%
+    mutate(descricao_cofog_pai = descricao_cofog ) %>%
+    mutate(descricao_cofog = descricao_cofog_filho) %>%
+    group_by(descricao_cofog_pai, descricao_cofog) %>%
+    summarise(
+      total_gasto = sum(valor)
+    )
+  
+  dados_cofog_completo <-
+    dados_cofog_pai %>%
+    bind_rows(dados_cofog_raiz,
+              dados_total)
+  
+  
+  dados_cofog_completo<-
+    dados_cofog_completo%>%
+    ungroup() %>%
+    mutate(descricao_cofog= reorder(descricao_cofog, total_gasto)) %>%
+    arrange(desc(descricao_cofog)) %>%
+    mutate (source = row_number() -1) 
+  
+  pai<-
+    (dados_cofog_completo %>%
+       filter(!is.na(descricao_cofog_pai)) %>%
+       distinct(descricao_cofog_pai))$descricao_cofog_pai
+  
+  pos_pai <-
+    dados_cofog_completo %>%
+    filter(descricao_cofog %in% pai) %>%
+    distinct(descricao_cofog, source) %>%
+    mutate(descricao_cofog_pai =descricao_cofog ) %>%
+    mutate(destination = source) %>%
+    select(descricao_cofog_pai, destination)
+  
+  dados_net<-
+    dados_cofog_completo %>%
+    inner_join(pos_pai) 
+  
+  
+  
+  nodes<- 
+    dados_cofog_completo %>%
+    select(descricao_cofog, descricao_cofog_pai) 
+  
+  
+  
+  links<- 
+    dados_net %>%
+    select(source,
+           destination,
+           total_gasto)
+  
+  
+  sankeyNetwork(Links = links, Nodes = nodes, Source = "source",
+                Target = "destination", Value = "total_gasto", NodeID = "descricao_cofog",
+                units = "", fontSize = 12, nodeWidth = 30, NodeGroup = "descricao_cofog_pai")
+  
+  
+  
+})
+
+
+
+```
+
