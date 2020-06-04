@@ -11,7 +11,43 @@ runtime: shiny
 library(flexdashboard)
 library(networkD3)
 library(shiny)
+library(readxl)
+library(ggplot2)
+library(dplyr)
+library(networkD3)
+library(plotly)
+library(viridis)
+
+
+COFOG_GC <- read_excel("COFOG GC.xlsx", 
+                         sheet = "despesa_funcao", col_types = c("text", 
+                                                                 "text", "skip", "skip", "skip", "skip", 
+                                                                 "skip", "skip", "skip", "skip", "skip"), 
+                         skip = 2)
+  
+  
+names(COFOG_GC)<- c("codigo_cofog","descricao_cofog")
+
 ```
+
+
+Visão geral
+=====================================  
+### Textos e infográficos falando do COFOG
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse aliquet orci vel laoreet scelerisque. Sed iaculis congue mi, at congue lectus mattis eget. Sed venenatis non dolor sit amet faucibus. Donec mollis sapien nec ligula elementum, vel finibus dolor interdum. Nullam elementum nibh ex, sit amet vehicula elit vulputate non. Sed pulvinar euismod pharetra. Nullam in enim lectus. Vivamus eu dolor enim. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Fusce euismod nulla non eros cursus, at sodales massa efficitur. Donec egestas nunc non enim consequat, tincidunt hendrerit orci tincidunt. Aenean cursus placerat maximus. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla congue mattis enim ac pharetra. In hac habitasse platea dictumst. Integer finibus suscipit sem at dapibus.
+
+Integer suscipit lacinia nibh, eget pellentesque nunc suscipit quis. Maecenas pretium eros ut interdum ullamcorper. Suspendisse potenti. Integer vitae convallis erat. Vivamus in lectus vitae lectus lobortis egestas. Proin eget urna in magna fringilla ultrices. Sed arcu justo, lacinia vel mattis at, mollis sed nisl. Sed at libero commodo metus scelerisque lobortis.
+
+Aliquam ac tincidunt tellus, vitae mattis leo. Donec rhoncus magna massa, in rutrum metus maximus hendrerit. Mauris sagittis finibus nisl et feugiat. Phasellus urna ipsum, sagittis eu sodales et, condimentum sit amet augue. Integer sed interdum lacus, ut venenatis odio. Proin aliquet cursus accumsan. Duis eu mollis sapien.
+
+Maecenas ultricies sagittis magna, eu dictum enim blandit vulputate. Integer efficitur mattis finibus. Maecenas pretium, justo non ultricies pulvinar, tortor augue fringilla eros, accumsan suscipit purus neque eu magna. Sed placerat, dolor vitae euismod finibus, lacus elit porttitor elit, nec dignissim risus est placerat mauris. Ut auctor ut nunc ac consequat. Aenean arcu eros, tincidunt in vulputate pharetra, laoreet eget lorem. Nulla eget aliquam elit, in volutpat ante. Aliquam vehicula, lorem ac sollicitudin mollis, nunc turpis interdum ante, sed maximus massa magna nec sem. Aliquam congue erat orci, a scelerisque metus porttitor eu. Donec facilisis sem eget metus fringilla, ac volutpat dui gravida.
+
+Nam luctus euismod mauris ut mattis. Morbi mattis enim tortor, id molestie arcu semper ac. Cras aliquet lectus tortor, ut sagittis quam bibendum vitae. Praesent ex enim, viverra ac tincidunt at, consectetur gravida orci. In enim metus, feugiat id urna et, tempus ultricies libero. In a neque leo. In dignissim nisi augue, vel tincidunt mi vehicula at. Suspendisse ut magna massa. Sed ac scelerisque elit. Nullam lorem nunc, imperdiet ac magna eget, congue volutpat leo. Cras tristique tellus et lectus dapibus, at vehicula nunc fringilla. Nunc nisl elit, eleifend non facilisis non, viverra et nibh.
+
+
+
+
 
 Fluxo Gastos COFOG
 =====================================  
@@ -30,11 +66,20 @@ selectInput("ano","Ano",choices = c("2019":"2010"), selected = "2019")
 ```
 
 
-
-Column 
+Column {data-width=400}
 -----------------------------------------------------------------------
+### Principais achados
 
-### Chart A
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec quis metus eu nibh congue convallis in non diam. Donec rhoncus vehicula dapibus. Proin in sodales nisi. Quisque id lectus sed est porta lobortis varius ac massa. Phasellus consequat augue eu lorem sollicitudin, ac vehicula massa rutrum. 
+
+- Praesent eleifend sagittis orci ut pretium. Proin pulvinar sem consectetur interdum lobortis. Maecenas eleifend bibendum metus, pharetra fermentum ipsum interdum a. Nullam fringilla orci dolor. Suspendisse eget libero tempor, rutrum nisl id, laoreet mauris. Donec porttitor efficitur nibh. 
+
+- Nam aliquet metus non lobortis laoreet. Sed suscipit fermentum eros, venenatis interdum tortor condimentum at. Duis vulputate condimentum purus eget iaculis. Fusce eleifend scelerisque enim suscipit iaculis. Proin ullamcorper vel ex non suscipit.
+
+
+Column {.tabset .tabset-fade}
+-----------------------------------------------------------------------
+### Gráfico
 
 ```{r}
 renderSankeyNetwork({
@@ -43,14 +88,6 @@ renderSankeyNetwork({
   library(dplyr)
   library(networkD3)
   
-  COFOG_GC <- read_excel("COFOG GC.xlsx", 
-                         sheet = "despesa_funcao", col_types = c("text", 
-                                                                 "text", "skip", "skip", "skip", "skip", 
-                                                                 "skip", "skip", "skip", "skip", "skip"), 
-                         skip = 2)
-  
-  
-  names(COFOG_GC)<- c("codigo_cofog","descricao_cofog")
   
   #file<- paste0("Base COFOG-","2017","-TT.xlsx")
   #file<-"Base-COFOG-2018-TT"
@@ -111,6 +148,7 @@ renderSankeyNetwork({
   dados_cofog_completo<-
     dados_cofog_completo%>%
     ungroup() %>%
+    mutate(total_gasto = total_gasto / 10^9)
     mutate(descricao_cofog= reorder(descricao_cofog, total_gasto)) %>%
     arrange(desc(descricao_cofog)) %>%
     mutate (source = row_number() -1) 
@@ -158,4 +196,99 @@ renderSankeyNetwork({
 
 
 ```
+
+### Botetim do ano selecionado
+
+```{r}
+
+```
+
+Especificação dos Gastos
+=====================================  
+
+Inputs {.sidebar}
+-------------------------------------
+
+```{r}
+# shiny inputs defined here
+
+
+selectInput("ano_eg","Ano",choices = c("2019":"2010"), selected = "2019")
+
+
+
+```
+
+
+Column {data-width=400}
+-----------------------------------------------------------------------
+### Principais achados
+
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec quis metus eu nibh congue convallis in non diam. Donec rhoncus vehicula dapibus. Proin in sodales nisi. Quisque id lectus sed est porta lobortis varius ac massa. Phasellus consequat augue eu lorem sollicitudin, ac vehicula massa rutrum. 
+
+- Praesent eleifend sagittis orci ut pretium. Proin pulvinar sem consectetur interdum lobortis. Maecenas eleifend bibendum metus, pharetra fermentum ipsum interdum a. Nullam fringilla orci dolor. Suspendisse eget libero tempor, rutrum nisl id, laoreet mauris. Donec porttitor efficitur nibh. 
+
+- Nam aliquet metus non lobortis laoreet. Sed suscipit fermentum eros, venenatis interdum tortor condimentum at. Duis vulputate condimentum purus eget iaculis. Fusce eleifend scelerisque enim suscipit iaculis. Proin ullamcorper vel ex non suscipit.
+
+
+Column {.tabset .tabset-fade}
+-----------------------------------------------------------------------
+
+### Gráfico de distribuição por Unidade Orçamentária
+
+```{r}
+
+
+renderPlotly({
+  
+  #file<- paste0("Base-COFOG-",2019,"-TT.xlsx")
+  file<- paste0("Base-COFOG-",input$ano_eg,"-TT.xlsx")
+  
+  Base_COFOG <- read_excel(file)
+  
+  names(Base_COFOG)[c(11,13:14)]<-c("unidade_orcamentaria","valor","codigo_cofog")
+  
+  
+  
+  dados_cofog_completo <-
+    Base_COFOG %>%
+    mutate(codigo_cofog_pai = stringr::str_sub(codigo_cofog,1,3)) %>%
+    inner_join(COFOG_GC) %>%
+    inner_join(COFOG_GC, by = c("codigo_cofog_pai"="codigo_cofog")) %>%
+    rename(descricao_cofog =  descricao_cofog.x,
+           descricao_cofog_pai = descricao_cofog.y)
+  
+  
+
+  dados_cofog_completo$tipo <- "Unidades orçamentárias"
+  
+  
+  dados_cofog_completo %>%
+    group_by(tipo, unidade_orcamentaria, descricao_cofog_pai) %>%
+    summarise(
+      total = sum(valor)
+    ) %>%
+  ggplot(aes(x=unidade_orcamentaria, y= total/10^6))+
+    geom_jitter(aes(color= factor(descricao_cofog_pai))) +
+    scale_y_log10() +
+    scale_color_viridis(discrete=TRUE) +
+    theme_light()+ 
+    theme(
+      panel.grid = element_blank()
+    )
+  
+  
+  
+})
+
+
+```
+
+
+### Gráfico de distribuição por Ação Governo
+
+```{r}
+
+```
+
 
