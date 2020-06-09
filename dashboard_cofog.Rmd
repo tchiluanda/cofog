@@ -17,6 +17,8 @@ library(dplyr)
 library(networkD3)
 library(plotly)
 library(viridis)
+library(stringr)
+library(readr)
 
 
 COFOG_GC <- read_excel("COFOG GC.xlsx", 
@@ -27,6 +29,8 @@ COFOG_GC <- read_excel("COFOG GC.xlsx",
   
   
 names(COFOG_GC)<- c("codigo_cofog","descricao_cofog")
+
+primeira_vez<<- TRUE
 
 ```
 
@@ -89,7 +93,7 @@ renderSankeyNetwork({
   library(networkD3)
   
   
-  #file<- paste0("Base COFOG-","2017","-TT.xlsx")
+  #file<- paste0("Base-COFOG-","2019","-TT.xlsx")
   #file<-"Base-COFOG-2018-TT"
   file<- paste0("Base-COFOG-",input$ano,"-TT.xlsx")
   
@@ -148,7 +152,7 @@ renderSankeyNetwork({
   dados_cofog_completo<-
     dados_cofog_completo%>%
     ungroup() %>%
-    mutate(total_gasto = total_gasto / 10^9)
+    mutate(total_gasto = total_gasto / 10^9) %>%
     mutate(descricao_cofog= reorder(descricao_cofog, total_gasto)) %>%
     arrange(desc(descricao_cofog)) %>%
     mutate (source = row_number() -1) 
@@ -203,7 +207,7 @@ renderSankeyNetwork({
 
 ```
 
-Especificação dos Gastos
+Especificação dos Gastos - Ação de governo
 =====================================  
 
 Inputs {.sidebar}
@@ -214,13 +218,14 @@ Inputs {.sidebar}
 
 
 selectInput("ano_eg","Ano",choices = c("2019":"2010"), selected = "2019")
+selectInput("acao", "Ação de governo", choices = "Ação de governo", multiple = TRUE)
 
 
 
 ```
 
 
-Column {data-width=400}
+Column {data-width=300}
 -----------------------------------------------------------------------
 ### Principais achados
 
@@ -229,6 +234,145 @@ Column {data-width=400}
 - Praesent eleifend sagittis orci ut pretium. Proin pulvinar sem consectetur interdum lobortis. Maecenas eleifend bibendum metus, pharetra fermentum ipsum interdum a. Nullam fringilla orci dolor. Suspendisse eget libero tempor, rutrum nisl id, laoreet mauris. Donec porttitor efficitur nibh. 
 
 - Nam aliquet metus non lobortis laoreet. Sed suscipit fermentum eros, venenatis interdum tortor condimentum at. Duis vulputate condimentum purus eget iaculis. Fusce eleifend scelerisque enim suscipit iaculis. Proin ullamcorper vel ex non suscipit.
+
+
+Column 
+-----------------------------------------------------------------------
+
+### Gráfico de distribuição por Ação Orçamentária
+
+```{r}
+
+renderPlot({
+  
+  #file<- paste0("Base-COFOG-",2019,"-TT.xlsx")
+  file<- paste0("Base-COFOG-",input$ano_eg,"-TT.xlsx")
+  
+  Base_COFOG <- read_excel(file)
+  
+  names(Base_COFOG)[c(7,13:14)]<-c("acao_governo","valor","codigo_cofog")
+  
+  
+  
+  dados_cofog_completo <-
+    Base_COFOG %>%
+    mutate(codigo_cofog_pai = stringr::str_sub(codigo_cofog,1,3)) %>%
+    inner_join(COFOG_GC) %>%
+    inner_join(COFOG_GC, by = c("codigo_cofog_pai"="codigo_cofog")) %>%
+    rename(descricao_cofog =  descricao_cofog.x,
+           descricao_cofog_pai = descricao_cofog.y)%>%
+    mutate(cofog_path = descricao_cofog_pai)
+  
+  
+  
+  dados_cofog_completo$tipo <- "Ação de governo"
+  
+
+  library(cluster)
+  
+  
+  
+  df_cluster<- 
+    dados_cofog_completo %>%
+    group_by(tipo, acao_governo, cofog_path) %>%
+    summarise(
+      total = sum(valor)
+    ) %>%
+    filter(total>0) %>%
+    arrange(desc(total))
+  
+  set.seed(1972)
+  #model<- pam(x = df_cluster[,4], k = 3)
+  
+  model<- kmeans(x= df_cluster[,4], centers = 3)
+  
+  
+
+  dados_cofog_completo<-
+  df_cluster %>%
+      ungroup() %>%
+    mutate(cluster = model$cluster,
+           cluster = reorder(cluster, desc(cluster)),
+           info_selecao = paste(acao_governo,cofog_path,cluster,sep="|"))
+  
+
+
+                
+           
+  
+  if (primeira_vez){
+
+      
+    a_choices<- unique(dados_cofog_completo$info_selecao)
+    a_selected<-(dados_cofog_completo %>%
+                filter(cluster == 3) %>%
+                select(info_selecao))$info_selecao
+    
+    #print(a_selected)  
+    
+    updateSelectInput(session, "acao",choices = a_choices, selected = a_selected)
+    print("saiu IF")
+    acao_sel<- input$acao
+    
+    primeira_vez <<- FALSE
+    
+    
+
+    
+  } else{
+    acao_sel<- input$acao
+  }
+  
+
+  dados_cofog_completo$tipo <- "Ação de governo"
+  
+
+  dados_filtrados<-
+    dados_cofog_completo %>%
+    filter(info_selecao %in% acao_sel)
+  
+  
+  # print(
+  # dados_cofog_completo %>%
+  #               filter(cluster == 3))  
+  # print(dados_filtrados)
+
+  dados_cofog_completo %>%
+    anti_join(dados_filtrados) %>%
+    arrange(total) %>%
+    mutate(cofog_path = reorder(cofog_path, total)) %>%
+    ggplot(aes(x=str_wrap(cofog_path,15), y= total/10^3))+
+    geom_jitter(color= "lightgray", size=4)+  
+    geom_jitter(data= dados_filtrados, aes(color= str_wrap(factor(acao_governo) ,20)), size = 5)+
+    #geom_text(aes(x=1.5,  label="Mudança de escala")) +
+    scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
+    scale_color_viridis(discrete=TRUE, option = "E") +
+    theme_light()+ 
+    theme(
+      panel.grid = element_blank(),
+      axis.text.x = element_text(),
+      
+    )+
+  labs(color="Ação de governo",
+       x="",
+       y="Valor gasto no ano (R$ mil)") +
+  facet_grid(cluster~., scales = "free_y" ,  space = "free_y") #+
+  #annotate("text", x=1.5 , y=1000,  label= "<-Mudança de escala")
+  #facet_grid(factor(cluster)~.,  space = "free_y")
+
+  
+  
+})
+
+
+```
+
+
+
+
+Especificação dos Gastos - Unidade Orçamentária
+=====================================  
+
 
 
 Column {.tabset .tabset-fade}
@@ -256,26 +400,77 @@ renderPlotly({
     inner_join(COFOG_GC) %>%
     inner_join(COFOG_GC, by = c("codigo_cofog_pai"="codigo_cofog")) %>%
     rename(descricao_cofog =  descricao_cofog.x,
-           descricao_cofog_pai = descricao_cofog.y)
+           descricao_cofog_pai = descricao_cofog.y)%>%
+    mutate(cofog_path = paste(descricao_cofog_pai,descricao_cofog, sep = "-"))
   
+  
+  
+  
+           
+  
+  if (primeira_vez){
+
+      
+    a_choices<- unique(dados_cofog_completo$cofog_path)
+    a_selected<- dados_cofog_completo$cofog_path[1]
+    
+    updateSelectInput(session, "cofog",choices = a_choices, selected = a_selected[1])
+    print("saiu IF")
+    cofog_sel<- input$cofog
+    
+    primeira_vez <<- FALSE
+    
+    
+
+    
+  } else{
+    cofog_sel<- input$cofog
+  }
   
 
   dados_cofog_completo$tipo <- "Unidades orçamentárias"
   
+  mediana<- median(
+    (dados_cofog_completo %>%
+    group_by(unidade_orcamentaria, cofog_path) %>%
+    summarise(
+      total = sum(valor))
+    )$total
+    
+  )
   
+  dados_filtrados<-
+    dados_cofog_completo %>%
+    filter(cofog_path %in% cofog_sel) %>%
+    group_by(tipo, unidade_orcamentaria, cofog_path) %>%
+    summarise(
+      total = sum(valor)
+    ) 
+  
+
   dados_cofog_completo %>%
-    group_by(tipo, unidade_orcamentaria, descricao_cofog_pai) %>%
+    group_by(tipo, unidade_orcamentaria, cofog_path) %>%
     summarise(
       total = sum(valor)
     ) %>%
-  ggplot(aes(x=unidade_orcamentaria, y= total/10^6))+
-    geom_jitter(aes(color= factor(descricao_cofog_pai))) +
-    scale_y_log10() +
+    filter(total>0) %>%
+  ggplot(aes(x=str_wrap(cofog_path,20), y= total/10^6))+
+    geom_jitter(color = "lightgrey")+  
+     #geom_segment( aes(x=descricao, xend=descricao, y=0, yend=media ), color= "black", size= 1.0)+
+    #geom_segment( aes(x=unidade_orcamentaria, xend=unidade_orcamentaria, y= total/10^6, yend=mediana ), color= "black", size= 1.0)+
+    #geom_line(aes())
+    geom_jitter(data= dados_filtrados, aes(color= str_wrap(factor(cofog_path) ,20)), alpha= 0.5) +
+    scale_y_log10(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
     scale_color_viridis(discrete=TRUE) +
     theme_light()+ 
     theme(
-      panel.grid = element_blank()
-    )
+      panel.grid = element_blank(),
+      axis.text.x = element_blank(),
+      legend.position = "top"
+    )+
+  labs(color="Função de governo",
+       x="",
+       y="Valor gasto no ano (R$ mi)")
   
   
   
@@ -284,11 +479,114 @@ renderPlotly({
 
 ```
 
+Especificação dos Gastos - Elemento de Despesa
+=====================================  
 
-### Gráfico de distribuição por Ação Governo
+
+
+Column {.tabset .tabset-fade}
+-----------------------------------------------------------------------
+
+### Gráfico de distribuição por Elemento de Despesa
 
 ```{r}
 
+
+renderPlotly({
+  
+  #file<- paste0("Base-COFOG-",2019,"-TT.xlsx")
+  file<- paste0("Base-COFOG-",input$ano_eg,"-TT.xlsx")
+  
+  Base_COFOG <- read_excel(file)
+  
+  names(Base_COFOG)[c(3,13:14)]<-c("ndd","valor","codigo_cofog")
+  
+  
+  
+  dados_cofog_completo <-
+    Base_COFOG %>%
+    mutate(codigo_cofog_pai = stringr::str_sub(codigo_cofog,1,3)) %>%
+    inner_join(COFOG_GC) %>%
+    inner_join(COFOG_GC, by = c("codigo_cofog_pai"="codigo_cofog")) %>%
+    rename(descricao_cofog =  descricao_cofog.x,
+           descricao_cofog_pai = descricao_cofog.y)%>%
+    mutate(cofog_path = paste(descricao_cofog_pai,descricao_cofog, sep = "-"))
+  
+  
+  
+  
+           
+  
+  if (primeira_vez){
+
+      
+    a_choices<- unique(dados_cofog_completo$cofog_path)
+    a_selected<- dados_cofog_completo$cofog_path[1]
+    
+    updateSelectInput(session, "cofog",choices = a_choices, selected = a_selected[1])
+    print("saiu IF")
+    cofog_sel<- input$cofog
+    
+    primeira_vez <<- FALSE
+    
+    
+
+    
+  } else{
+    cofog_sel<- input$cofog
+  }
+  
+
+  dados_cofog_completo$tipo <- "Elemento de Despesa"
+  
+  tab_elemento_despesa <- read_csv("tab_elemento_despesa.csv", 
+    col_types = cols(elemento_despesa = col_character()))
+  
+  
+
+  
+  dados_filtrados<-
+    dados_cofog_completo %>%
+    filter(cofog_path %in% cofog_sel) %>%
+    mutate(elemento_despesa = str_sub(ndd,2,2)) %>%
+    inner_join(tab_elemento_despesa) %>%
+    group_by(tipo, descricao_elemento_despesa, cofog_path) %>%
+    summarise(
+      total = sum(valor)
+    ) 
+  
+  print(dados_filtrados)
+
+  dados_cofog_completo %>%
+    mutate(elemento_despesa = str_sub(ndd,2,2)) %>%
+    inner_join(tab_elemento_despesa) %>%
+    group_by(tipo, descricao_elemento_despesa, cofog_path) %>%
+    summarise(
+      total = sum(valor)
+    ) %>%
+    filter(total>0) %>%
+  ggplot(aes(x=descricao_elemento_despesa, y= total/10^6))+
+    geom_jitter(color = "lightgrey")+  
+     #geom_segment( aes(x=descricao, xend=descricao, y=0, yend=media ), color= "black", size= 1.0)+
+    #geom_segment( aes(x=unidade_orcamentaria, xend=unidade_orcamentaria, y= total/10^6, yend=mediana ), color= "black", size= 1.0)+
+    #geom_line(aes())
+    geom_jitter(data= dados_filtrados, aes(color= str_wrap(factor(cofog_path) ,20)), alpha= 0.5) +
+    scale_y_log10(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
+    scale_color_viridis(discrete=TRUE) +
+    theme_light()+ 
+    theme(
+      panel.grid = element_blank(),
+      axis.text.x = element_text(angle = 90),
+      #axis.text.x = element_blank(),
+      legend.position = "top"
+    )+
+  labs(color="Função de Governo",
+       x="",
+       y="Valor gasto no ano (R$ mi)")
+  
+  
+  
+})
+
+
 ```
-
-
