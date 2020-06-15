@@ -19,7 +19,14 @@ library(plotly)
 library(viridis)
 library(stringr)
 library(readr)
+library(Cairo)
 
+
+options(shiny.usecairo=T)
+
+#"Source Sans Pro",Calibri,Candara,Arial,sans-serifbody
+
+#tags$style(type="text/css", "text {font-family: Source Sans Pro}")
 
 COFOG_GC <- read_excel("COFOG GC.xlsx", 
                          sheet = "despesa_funcao", col_types = c("text", 
@@ -31,6 +38,8 @@ COFOG_GC <- read_excel("COFOG GC.xlsx",
 names(COFOG_GC)<- c("codigo_cofog","descricao_cofog")
 
 primeira_vez<<- TRUE
+
+load("COFOG.RData")
 
 ```
 
@@ -86,20 +95,35 @@ Column {.tabset .tabset-fade}
 ### Gráfico
 
 ```{r}
+
+tags$style("
+              body {
+    -moz-transform: scale(0.80, 0.80); /* Moz-browsers */
+    zoom: 0.80; /* Other non-webkit browsers */
+    zoom: 80%; /* Webkit browsers */
+}
+              ")
+
 renderSankeyNetwork({
   library(readxl)
   library(ggplot2)
+  
   library(dplyr)
   library(networkD3)
   
   
   #file<- paste0("Base-COFOG-","2019","-TT.xlsx")
   #file<-"Base-COFOG-2018-TT"
-  file<- paste0("Base-COFOG-",input$ano,"-TT.xlsx")
+  #file<- paste0("Base-COFOG-",input$ano,"-TT.xlsx")
   
-  Base_COFOG <- read_excel(file)
+  #Base_COFOG <- read_excel(file)
   
-  names(Base_COFOG)[13:14]<-c("valor","codigo_cofog")
+  #names(Base_COFOG)[13:14]<-c("valor","codigo_cofog")
+  
+  
+  Base_COFOG<-
+  Base_COFOG %>%
+    filter(ano==input$ano)
 
   
   
@@ -216,24 +240,45 @@ Inputs {.sidebar}
 ```{r}
 # shiny inputs defined here
 
-
 selectInput("ano_eg","Ano",choices = c("2019":"2010"), selected = "2019")
+checkboxGroupInput ("zoom","Zoom no(s) agrupamento(s)", choices = c("1", "2") )
+actionButton("limpar", "Limpar Filtro")
 selectInput("acao", "Ação de governo", choices = "Ação de governo", multiple = TRUE)
 
 
 
 ```
 
+```{r}
+observeEvent(input$ano_eg, {
+  
+  primeira_vez<<- TRUE
+  
+  
 
-Column {data-width=300}
------------------------------------------------------------------------
-### Principais achados
+})
 
-- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec quis metus eu nibh congue convallis in non diam. Donec rhoncus vehicula dapibus. Proin in sodales nisi. Quisque id lectus sed est porta lobortis varius ac massa. Phasellus consequat augue eu lorem sollicitudin, ac vehicula massa rutrum. 
 
-- Praesent eleifend sagittis orci ut pretium. Proin pulvinar sem consectetur interdum lobortis. Maecenas eleifend bibendum metus, pharetra fermentum ipsum interdum a. Nullam fringilla orci dolor. Suspendisse eget libero tempor, rutrum nisl id, laoreet mauris. Donec porttitor efficitur nibh. 
+observeEvent(input$acao, {
+  
 
-- Nam aliquet metus non lobortis laoreet. Sed suscipit fermentum eros, venenatis interdum tortor condimentum at. Duis vulputate condimentum purus eget iaculis. Fusce eleifend scelerisque enim suscipit iaculis. Proin ullamcorper vel ex non suscipit.
+  primeira_vez<<- FALSE
+  
+
+})
+
+
+observeEvent(input$limpar, {
+  
+  print("Botão pressionado")
+  updateSelectInput(session = session, inputId = "acao", selected = "")
+  
+
+})
+
+```
+
+
 
 
 Column 
@@ -242,20 +287,15 @@ Column
 ### Gráfico de distribuição por Ação Orçamentária
 
 ```{r}
-
+library(ggrepel)
+library(colorspace)
 renderPlot({
   
-  #file<- paste0("Base-COFOG-",2019,"-TT.xlsx")
-  file<- paste0("Base-COFOG-",input$ano_eg,"-TT.xlsx")
-  
-  Base_COFOG <- read_excel(file)
-  
-  names(Base_COFOG)[c(7,13:14)]<-c("acao_governo","valor","codigo_cofog")
-  
-  
+
   
   dados_cofog_completo <-
     Base_COFOG %>%
+    filter(ano==input$ano_eg) %>%
     mutate(codigo_cofog_pai = stringr::str_sub(codigo_cofog,1,3)) %>%
     inner_join(COFOG_GC) %>%
     inner_join(COFOG_GC, by = c("codigo_cofog_pai"="codigo_cofog")) %>%
@@ -286,6 +326,19 @@ renderPlot({
   
   model<- kmeans(x= df_cluster[,4], centers = 3)
   
+  if(is.null(input$zoom)){
+    filter_cluster<-c(1,2,3)
+  } else{
+    filter_cluster<-input$zoom
+  }
+    
+  
+  
+  print("input$zoom")
+  print(input$zoom)
+  print("filter_cluster")
+  print(filter_cluster)
+  
   
 
   dados_cofog_completo<-
@@ -305,13 +358,13 @@ renderPlot({
       
     a_choices<- unique(dados_cofog_completo$info_selecao)
     a_selected<-(dados_cofog_completo %>%
-                filter(cluster == 3) %>%
+                filter(cluster %in% c(2,3)) %>%
                 select(info_selecao))$info_selecao
     
-    #print(a_selected)  
+    print(a_selected)  
     
     updateSelectInput(session, "acao",choices = a_choices, selected = a_selected)
-    print("saiu IF")
+    #print("saiu IF")
     acao_sel<- input$acao
     
     primeira_vez <<- FALSE
@@ -329,38 +382,50 @@ renderPlot({
 
   dados_filtrados<-
     dados_cofog_completo %>%
-    filter(info_selecao %in% acao_sel)
+    filter(info_selecao %in% acao_sel,
+           cluster %in% filter_cluster)
   
   
-  # print(
-  # dados_cofog_completo %>%
-  #               filter(cluster == 3))  
-  # print(dados_filtrados)
-
+  dados_alerta<-
+    dados_cofog_completo %>%
+    filter(cluster==3) %>%
+    group_by(cluster)%>%
+    summarise(
+      min_total = min(total)/10^9
+    )
+  
+    
+  print("dados_alerta")
+  print(dados_alerta)
+  #set.seed(1972)
+  graph<-
   dados_cofog_completo %>%
+    filter(cluster %in% filter_cluster) %>%
     anti_join(dados_filtrados) %>%
-    arrange(total) %>%
-    mutate(cofog_path = reorder(cofog_path, total)) %>%
-    ggplot(aes(x=str_wrap(cofog_path,15), y= total/10^3))+
-    geom_jitter(color= "lightgray", size=4)+  
-    geom_jitter(data= dados_filtrados, aes(color= str_wrap(factor(acao_governo) ,20)), size = 5)+
-    #geom_text(aes(x=1.5,  label="Mudança de escala")) +
+    ggplot(aes(x=str_wrap(cofog_path,15), y= total/10^9, color= cofog_path))+ 
+    geom_jitter( show.legend = FALSE, size=4, height = 0, width = ifelse(dados_cofog_completo$cluster==1,0.2,0.1))+  
+    geom_text_repel(data= dados_filtrados,aes(label = str_wrap(paste(acao_governo, as.character(round(total/10^9,2)), sep=":"),20) ),  show.legend = FALSE, box.padding = unit(0.45, "lines")) +
+    geom_jitter(data= dados_filtrados,  size = 4, show.legend = FALSE, height = 0, width = ifelse(dados_filtrados$cluster==1,0.2,0.1)) +
+    #geom_text(data = dados_alerta, aes(x=1.2, y= min_total,  label="<---Mudança de escala"), color = "red") +
     scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
-    scale_color_viridis(discrete=TRUE, option = "E") +
+    #scale_color_viridis(discrete=TRUE, option = "E") +
+    scale_color_discrete_qualitative(palette = "Dark 3")+
     theme_light()+ 
     theme(
       panel.grid = element_blank(),
-      axis.text.x = element_text(),
+      axis.text.x = element_text()
       
     )+
-  labs(color="Ação de governo",
+  labs(color="",
        x="",
-       y="Valor gasto no ano (R$ mil)") +
-  facet_grid(cluster~., scales = "free_y" ,  space = "free_y") #+
-  #annotate("text", x=1.5 , y=1000,  label= "<-Mudança de escala")
-  #facet_grid(factor(cluster)~.,  space = "free_y")
-
+       y="Valor gasto no ano (R$ bi)") +
+  facet_grid(cluster~., scales = "free_y" ,  space = "free_y") 
   
+  if (is.null(input$zoom)){
+    graph<- graph+ geom_text(data = dados_alerta, aes(x=1.2, y= min_total,  label="<---Mudança de escala"), color = "red")
+  }
+  
+  graph
   
 })
 
@@ -415,7 +480,7 @@ renderPlotly({
     a_selected<- dados_cofog_completo$cofog_path[1]
     
     updateSelectInput(session, "cofog",choices = a_choices, selected = a_selected[1])
-    print("saiu IF")
+    #print("saiu IF")
     cofog_sel<- input$cofog
     
     primeira_vez <<- FALSE
@@ -510,7 +575,7 @@ renderPlotly({
     inner_join(COFOG_GC, by = c("codigo_cofog_pai"="codigo_cofog")) %>%
     rename(descricao_cofog =  descricao_cofog.x,
            descricao_cofog_pai = descricao_cofog.y)%>%
-    mutate(cofog_path = paste(descricao_cofog_pai,descricao_cofog, sep = "-"))
+    mutate(cofog_path = paste(descricao_cofog_pai))
   
   
   
@@ -524,7 +589,7 @@ renderPlotly({
     a_selected<- dados_cofog_completo$cofog_path[1]
     
     updateSelectInput(session, "cofog",choices = a_choices, selected = a_selected[1])
-    print("saiu IF")
+    #print("saiu IF")
     cofog_sel<- input$cofog
     
     primeira_vez <<- FALSE
@@ -555,7 +620,7 @@ renderPlotly({
       total = sum(valor)
     ) 
   
-  print(dados_filtrados)
+  #print(dados_filtrados)
 
   dados_cofog_completo %>%
     mutate(elemento_despesa = str_sub(ndd,2,2)) %>%
@@ -565,12 +630,10 @@ renderPlotly({
       total = sum(valor)
     ) %>%
     filter(total>0) %>%
-  ggplot(aes(x=descricao_elemento_despesa, y= total/10^6))+
-    geom_jitter(color = "lightgrey")+  
-     #geom_segment( aes(x=descricao, xend=descricao, y=0, yend=media ), color= "black", size= 1.0)+
-    #geom_segment( aes(x=unidade_orcamentaria, xend=unidade_orcamentaria, y= total/10^6, yend=mediana ), color= "black", size= 1.0)+
+  ggplot(aes(x=str_wrap(factor(cofog_path) ,20), y= total/10^6))+
+    geom_jitter(aes(color =  str_wrap(factor(descricao_elemento_despesa) ,20)))+  
     #geom_line(aes())
-    geom_jitter(data= dados_filtrados, aes(color= str_wrap(factor(cofog_path) ,20)), alpha= 0.5) +
+    geom_jitter(data= dados_filtrados, aes(color= str_wrap(factor(descricao_elemento_despesa) ,20)), alpha= 0.5) +
     scale_y_log10(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
     scale_color_viridis(discrete=TRUE) +
     theme_light()+ 
