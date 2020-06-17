@@ -20,6 +20,11 @@ library(viridis)
 library(stringr)
 library(readr)
 library(Cairo)
+library(ggrepel)
+library(colorspace)
+library(cluster)
+library(tidyr)
+library(stringr)
 
 
 options(shiny.usecairo=T)
@@ -38,8 +43,57 @@ COFOG_GC <- read_excel("COFOG GC.xlsx",
 names(COFOG_GC)<- c("codigo_cofog","descricao_cofog")
 
 primeira_vez<<- TRUE
+primeira_vez_elemento<<- TRUE
 
 load("COFOG.RData")
+
+tab_elemento_despesa <- read_csv("tab_elemento_despesa.csv", 
+    col_types = cols(elemento_despesa = col_character()))
+
+get_dados_economicos<- function(a_ano){
+  
+  sheet<- paste0("Funcao_Economica_",a_ano)
+  COFOG_GC <- read_excel("COFOG GC.xlsx", sheet = sheet, 
+    skip = 3)
+  names(COFOG_GC)[1]<-"codigo_cofog"
+  names(COFOG_GC)[2]<-"descricao_cofog"
+  
+  COFOG_GC_gather<-
+  COFOG_GC %>%
+    select(-11)%>%
+    gather(funcao_economica, valor, -c(1,2)) %>%
+    filter(codigo_cofog!="7") %>%
+    mutate(funcao_economica = str_sub(funcao_economica,5,100),
+           codigo_cofog_pai = ifelse(str_length(codigo_cofog)==3,"7",str_sub(codigo_cofog,1,3)) )
+
+}
+
+
+get_dados_cofog_completo<- function(a_ano, a_cofog_path_completo =FALSE){
+  names(Base_COFOG)[2]<-"ajustes"
+  
+  base_trabalho<-
+  Base_COFOG %>%
+    filter(ano==a_ano) %>%
+    mutate(codigo_cofog_pai = stringr::str_sub(codigo_cofog,1,3),
+           acao_governo = ifelse(acao_governo == "ND", ajustes,acao_governo)) %>%
+    inner_join(COFOG_GC) %>%
+    inner_join(COFOG_GC, by = c("codigo_cofog_pai"="codigo_cofog")) %>%
+    rename(descricao_cofog =  descricao_cofog.x,
+           descricao_cofog_pai = descricao_cofog.y)
+  
+  if (a_cofog_path_completo){
+    base_trabalho%>%
+    mutate(cofog_path = paste(descricao_cofog_pai, descricao_cofog))
+  } else{
+    
+        base_trabalho%>%
+    mutate(cofog_path = descricao_cofog_pai)
+
+    
+  }
+  
+}
 
 ```
 
@@ -48,15 +102,20 @@ Visão geral
 =====================================  
 ### Textos e infográficos falando do COFOG
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse aliquet orci vel laoreet scelerisque. Sed iaculis congue mi, at congue lectus mattis eget. Sed venenatis non dolor sit amet faucibus. Donec mollis sapien nec ligula elementum, vel finibus dolor interdum. Nullam elementum nibh ex, sit amet vehicula elit vulputate non. Sed pulvinar euismod pharetra. Nullam in enim lectus. Vivamus eu dolor enim. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Fusce euismod nulla non eros cursus, at sodales massa efficitur. Donec egestas nunc non enim consequat, tincidunt hendrerit orci tincidunt. Aenean cursus placerat maximus. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla congue mattis enim ac pharetra. In hac habitasse platea dictumst. Integer finibus suscipit sem at dapibus.
 
-Integer suscipit lacinia nibh, eget pellentesque nunc suscipit quis. Maecenas pretium eros ut interdum ullamcorper. Suspendisse potenti. Integer vitae convallis erat. Vivamus in lectus vitae lectus lobortis egestas. Proin eget urna in magna fringilla ultrices. Sed arcu justo, lacinia vel mattis at, mollis sed nisl. Sed at libero commodo metus scelerisque lobortis.
+```{r}
 
-Aliquam ac tincidunt tellus, vitae mattis leo. Donec rhoncus magna massa, in rutrum metus maximus hendrerit. Mauris sagittis finibus nisl et feugiat. Phasellus urna ipsum, sagittis eu sodales et, condimentum sit amet augue. Integer sed interdum lacus, ut venenatis odio. Proin aliquet cursus accumsan. Duis eu mollis sapien.
+renderUI({
+  
+   tags$iframe(src = "https://tchiluanda.github.io/", height="100%", width="100%")
+  
 
-Maecenas ultricies sagittis magna, eu dictum enim blandit vulputate. Integer efficitur mattis finibus. Maecenas pretium, justo non ultricies pulvinar, tortor augue fringilla eros, accumsan suscipit purus neque eu magna. Sed placerat, dolor vitae euismod finibus, lacus elit porttitor elit, nec dignissim risus est placerat mauris. Ut auctor ut nunc ac consequat. Aenean arcu eros, tincidunt in vulputate pharetra, laoreet eget lorem. Nulla eget aliquam elit, in volutpat ante. Aliquam vehicula, lorem ac sollicitudin mollis, nunc turpis interdum ante, sed maximus massa magna nec sem. Aliquam congue erat orci, a scelerisque metus porttitor eu. Donec facilisis sem eget metus fringilla, ac volutpat dui gravida.
+})
 
-Nam luctus euismod mauris ut mattis. Morbi mattis enim tortor, id molestie arcu semper ac. Cras aliquet lectus tortor, ut sagittis quam bibendum vitae. Praesent ex enim, viverra ac tincidunt at, consectetur gravida orci. In enim metus, feugiat id urna et, tempus ultricies libero. In a neque leo. In dignissim nisi augue, vel tincidunt mi vehicula at. Suspendisse ut magna massa. Sed ac scelerisque elit. Nullam lorem nunc, imperdiet ac magna eget, congue volutpat leo. Cras tristique tellus et lectus dapibus, at vehicula nunc fringilla. Nunc nisl elit, eleifend non facilisis non, viverra et nibh.
+
+
+```
+```
 
 
 
@@ -231,7 +290,7 @@ renderSankeyNetwork({
 
 ```
 
-Especificação dos Gastos - Ação de governo
+Especificação dos Gastos - Ação de Governo
 =====================================  
 
 Inputs {.sidebar}
@@ -284,37 +343,35 @@ observeEvent(input$limpar, {
 Column 
 -----------------------------------------------------------------------
 
-### Gráfico de distribuição por Ação Orçamentária
+
+### Gráfico de distribuição por Ação de Governo
 
 ```{r}
-library(ggrepel)
-library(colorspace)
+
 renderPlot({
   
 
   
-  dados_cofog_completo <-
-    Base_COFOG %>%
-    filter(ano==input$ano_eg) %>%
-    mutate(codigo_cofog_pai = stringr::str_sub(codigo_cofog,1,3)) %>%
-    inner_join(COFOG_GC) %>%
-    inner_join(COFOG_GC, by = c("codigo_cofog_pai"="codigo_cofog")) %>%
-    rename(descricao_cofog =  descricao_cofog.x,
-           descricao_cofog_pai = descricao_cofog.y)%>%
-    mutate(cofog_path = descricao_cofog_pai)
+  #dados_cofog_completo <- get_dados_cofog_completo(2019)
+  dados_cofog_completo <- get_dados_cofog_completo(input$ano_eg)
+    # Base_COFOG %>%
+    # filter(ano==input$ano_eg) %>%
+    # mutate(codigo_cofog_pai = stringr::str_sub(codigo_cofog,1,3)) %>%
+    # inner_join(COFOG_GC) %>%
+    # inner_join(COFOG_GC, by = c("codigo_cofog_pai"="codigo_cofog")) %>%
+    # rename(descricao_cofog =  descricao_cofog.x,
+    #        descricao_cofog_pai = descricao_cofog.y)%>%
+    # mutate(cofog_path = descricao_cofog_pai)
   
   
   
-  dados_cofog_completo$tipo <- "Ação de governo"
   
-
-  library(cluster)
   
   
   
   df_cluster<- 
     dados_cofog_completo %>%
-    group_by(tipo, acao_governo, cofog_path) %>%
+    group_by(acao_governo, cofog_path) %>%
     summarise(
       total = sum(valor)
     ) %>%
@@ -324,7 +381,7 @@ renderPlot({
   set.seed(1972)
   #model<- pam(x = df_cluster[,4], k = 3)
   
-  model<- kmeans(x= df_cluster[,4], centers = 3)
+  model<- kmeans(x= df_cluster[,3], centers = 3)
   
   if(is.null(input$zoom)){
     filter_cluster<-c(1,2,3)
@@ -332,12 +389,6 @@ renderPlot({
     filter_cluster<-input$zoom
   }
     
-  
-  
-  print("input$zoom")
-  print(input$zoom)
-  print("filter_cluster")
-  print(filter_cluster)
   
   
 
@@ -377,9 +428,7 @@ renderPlot({
   }
   
 
-  dados_cofog_completo$tipo <- "Ação de governo"
   
-
   dados_filtrados<-
     dados_cofog_completo %>%
     filter(info_selecao %in% acao_sel,
@@ -395,18 +444,14 @@ renderPlot({
     )
   
     
-  print("dados_alerta")
-  print(dados_alerta)
-  #set.seed(1972)
   graph<-
   dados_cofog_completo %>%
     filter(cluster %in% filter_cluster) %>%
     anti_join(dados_filtrados) %>%
     ggplot(aes(x=str_wrap(cofog_path,15), y= total/10^9, color= cofog_path))+ 
-    geom_jitter( show.legend = FALSE, size=4, height = 0, width = ifelse(dados_cofog_completo$cluster==1,0.2,0.1))+  
-    geom_text_repel(data= dados_filtrados,aes(label = str_wrap(paste(acao_governo, as.character(round(total/10^9,2)), sep=":"),20) ),  show.legend = FALSE, box.padding = unit(0.45, "lines")) +
-    geom_jitter(data= dados_filtrados,  size = 4, show.legend = FALSE, height = 0, width = ifelse(dados_filtrados$cluster==1,0.2,0.1)) +
-    #geom_text(data = dados_alerta, aes(x=1.2, y= min_total,  label="<---Mudança de escala"), color = "red") +
+    geom_jitter( show.legend = FALSE, size=4, height = 0, width = ifelse(dados_cofog_completo$cluster==1,0.4,0.1), alpha = 0.3)+  
+    geom_text_repel(data= dados_filtrados,aes(label = str_wrap(paste(acao_governo, as.character(round(total/10^9,2)), sep=": "),20) ),  show.legend = FALSE, box.padding = unit(0.45, "lines")) +
+    geom_jitter(data= dados_filtrados,  size = 4, show.legend = FALSE, height = 0, width = ifelse(dados_filtrados$cluster==1,0.2,0.1),alpha = 1) +
     scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
     #scale_color_viridis(discrete=TRUE, option = "E") +
     scale_color_discrete_qualitative(palette = "Dark 3")+
@@ -432,224 +477,166 @@ renderPlot({
 
 ```
 
-
-
-
-Especificação dos Gastos - Unidade Orçamentária
+Especificação dos Gastos - Classificação Econômica
 =====================================  
 
-
-
-Column {.tabset .tabset-fade}
------------------------------------------------------------------------
-
-### Gráfico de distribuição por Unidade Orçamentária
+Inputs {.sidebar}
+-------------------------------------
 
 ```{r}
+# shiny inputs defined here
 
-
-renderPlotly({
-  
-  #file<- paste0("Base-COFOG-",2019,"-TT.xlsx")
-  file<- paste0("Base-COFOG-",input$ano_eg,"-TT.xlsx")
-  
-  Base_COFOG <- read_excel(file)
-  
-  names(Base_COFOG)[c(11,13:14)]<-c("unidade_orcamentaria","valor","codigo_cofog")
-  
-  
-  
-  dados_cofog_completo <-
-    Base_COFOG %>%
-    mutate(codigo_cofog_pai = stringr::str_sub(codigo_cofog,1,3)) %>%
-    inner_join(COFOG_GC) %>%
-    inner_join(COFOG_GC, by = c("codigo_cofog_pai"="codigo_cofog")) %>%
-    rename(descricao_cofog =  descricao_cofog.x,
-           descricao_cofog_pai = descricao_cofog.y)%>%
-    mutate(cofog_path = paste(descricao_cofog_pai,descricao_cofog, sep = "-"))
-  
-  
-  
-  
-           
-  
-  if (primeira_vez){
-
-      
-    a_choices<- unique(dados_cofog_completo$cofog_path)
-    a_selected<- dados_cofog_completo$cofog_path[1]
-    
-    updateSelectInput(session, "cofog",choices = a_choices, selected = a_selected[1])
-    #print("saiu IF")
-    cofog_sel<- input$cofog
-    
-    primeira_vez <<- FALSE
-    
-    
-
-    
-  } else{
-    cofog_sel<- input$cofog
-  }
-  
-
-  dados_cofog_completo$tipo <- "Unidades orçamentárias"
-  
-  mediana<- median(
-    (dados_cofog_completo %>%
-    group_by(unidade_orcamentaria, cofog_path) %>%
-    summarise(
-      total = sum(valor))
-    )$total
-    
-  )
-  
-  dados_filtrados<-
-    dados_cofog_completo %>%
-    filter(cofog_path %in% cofog_sel) %>%
-    group_by(tipo, unidade_orcamentaria, cofog_path) %>%
-    summarise(
-      total = sum(valor)
-    ) 
-  
-
-  dados_cofog_completo %>%
-    group_by(tipo, unidade_orcamentaria, cofog_path) %>%
-    summarise(
-      total = sum(valor)
-    ) %>%
-    filter(total>0) %>%
-  ggplot(aes(x=str_wrap(cofog_path,20), y= total/10^6))+
-    geom_jitter(color = "lightgrey")+  
-     #geom_segment( aes(x=descricao, xend=descricao, y=0, yend=media ), color= "black", size= 1.0)+
-    #geom_segment( aes(x=unidade_orcamentaria, xend=unidade_orcamentaria, y= total/10^6, yend=mediana ), color= "black", size= 1.0)+
-    #geom_line(aes())
-    geom_jitter(data= dados_filtrados, aes(color= str_wrap(factor(cofog_path) ,20)), alpha= 0.5) +
-    scale_y_log10(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
-    scale_color_viridis(discrete=TRUE) +
-    theme_light()+ 
-    theme(
-      panel.grid = element_blank(),
-      axis.text.x = element_blank(),
-      legend.position = "top"
-    )+
-  labs(color="Função de governo",
-       x="",
-       y="Valor gasto no ano (R$ mi)")
-  
-  
-  
-})
-
-
+selectInput("ano_ed","Ano",choices = c("2019":"2010"), selected = "2019")
+checkboxInput("escala","Escala livre", value = FALSE )
+selectInput("zoom_ed","Escolha um tipo de gasto para detalhar", choices = "Serviços públicos gerais", selected = "Serviços públicos gerais")
 ```
 
-Especificação dos Gastos - Elemento de Despesa
-=====================================  
-
-
-
-Column {.tabset .tabset-fade}
+Column 
 -----------------------------------------------------------------------
 
-### Gráfico de distribuição por Elemento de Despesa
+
+### Gráfico de distribuição por Classificação Econômica
 
 ```{r}
 
 
-renderPlotly({
-  
-  #file<- paste0("Base-COFOG-",2019,"-TT.xlsx")
-  file<- paste0("Base-COFOG-",input$ano_eg,"-TT.xlsx")
-  
-  Base_COFOG <- read_excel(file)
-  
-  names(Base_COFOG)[c(3,13:14)]<-c("ndd","valor","codigo_cofog")
+renderPlot({
   
   
+  dados_cofog_completo <- get_dados_cofog_completo(input$ano_ed)
   
-  dados_cofog_completo <-
-    Base_COFOG %>%
-    mutate(codigo_cofog_pai = stringr::str_sub(codigo_cofog,1,3)) %>%
-    inner_join(COFOG_GC) %>%
-    inner_join(COFOG_GC, by = c("codigo_cofog_pai"="codigo_cofog")) %>%
-    rename(descricao_cofog =  descricao_cofog.x,
-           descricao_cofog_pai = descricao_cofog.y)%>%
-    mutate(cofog_path = paste(descricao_cofog_pai))
-  
-  
-  
-  
-           
-  
-  if (primeira_vez){
+  dados_economicos <- get_dados_economicos(input$ano_ed)
 
-      
-    a_choices<- unique(dados_cofog_completo$cofog_path)
-    a_selected<- dados_cofog_completo$cofog_path[1]
-    
-    updateSelectInput(session, "cofog",choices = a_choices, selected = a_selected[1])
-    #print("saiu IF")
-    cofog_sel<- input$cofog
-    
-    primeira_vez <<- FALSE
-    
-    
-
-    
-  } else{
-    cofog_sel<- input$cofog
-  }
-  
-
-  dados_cofog_completo$tipo <- "Elemento de Despesa"
-  
-  tab_elemento_despesa <- read_csv("tab_elemento_despesa.csv", 
-    col_types = cols(elemento_despesa = col_character()))
-  
-  
 
   
-  dados_filtrados<-
-    dados_cofog_completo %>%
-    filter(cofog_path %in% cofog_sel) %>%
-    mutate(elemento_despesa = str_sub(ndd,2,2)) %>%
-    inner_join(tab_elemento_despesa) %>%
-    group_by(tipo, descricao_elemento_despesa, cofog_path) %>%
-    summarise(
-      total = sum(valor)
-    ) 
-  
-  #print(dados_filtrados)
 
-  dados_cofog_completo %>%
-    mutate(elemento_despesa = str_sub(ndd,2,2)) %>%
-    inner_join(tab_elemento_despesa) %>%
-    group_by(tipo, descricao_elemento_despesa, cofog_path) %>%
-    summarise(
-      total = sum(valor)
-    ) %>%
-    filter(total>0) %>%
-  ggplot(aes(x=str_wrap(factor(cofog_path) ,20), y= total/10^6))+
-    geom_jitter(aes(color =  str_wrap(factor(descricao_elemento_despesa) ,20)))+  
-    #geom_line(aes())
-    geom_jitter(data= dados_filtrados, aes(color= str_wrap(factor(descricao_elemento_despesa) ,20)), alpha= 0.5) +
-    scale_y_log10(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
-    scale_color_viridis(discrete=TRUE) +
+  graph<-
+  dados_economicos %>%
+  filter(codigo_cofog_pai == "7") %>%
+  mutate(descricao_cofog = reorder(descricao_cofog, valor),
+         funcao_economica = reorder(funcao_economica, desc(valor))) %>% 
+    
+  ggplot(aes(x=factor(descricao_cofog),valor, fill= funcao_economica))+
+    geom_col()+
+    scale_fill_viridis(discrete=TRUE) +
+    scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
     theme_light()+ 
     theme(
       panel.grid = element_blank(),
       axis.text.x = element_text(angle = 90),
       #axis.text.x = element_blank(),
-      legend.position = "top"
+      legend.position = ""
     )+
-  labs(color="Função de Governo",
+  labs(color="",
        x="",
-       y="Valor gasto no ano (R$ mi)")
+       y="Valor gasto no ano (R$ mi)")+
+      
+    coord_flip()
   
-  
+  if (input$escala){
+    graph+
+    facet_wrap(funcao_economica~., scales = "free_x")
+  } else{
+    graph+
+    facet_wrap(funcao_economica~.)
+  }
   
 })
 
 
 ```
+
+
+Column {.tabset .tabset-fade}
+-----------------------------------------------------------------------
+
+
+### Detalhamento por Elemento de Despesa
+
+```{r}
+
+renderPlot({
+  #dados_cofog_completo <- get_dados_cofog_completo(input$ano_ed)
+  
+  #dados_economicos <- get_dados_economicos(2019)
+  dados_economicos <- get_dados_economicos(input$ano_ed)
+  
+  
+  if (primeira_vez_elemento){
+    choice<- 
+      dados_economicos %>%
+      filter(codigo_cofog_pai == "7") %>%
+      arrange(desc(valor)) %>%
+      select(descricao_cofog)
+    
+    print(choice)
+    
+    
+    a_choice<- choice$descricao_cofog
+    
+    print(a_choice[1])
+    updateSelectInput(session = session, inputId = "zoom_ed", choices = a_choice, selected = a_choice[1] )
+    
+    primeira_vez_elemento<<- FALSE
+    
+    func_sel<- input$zoom_ed
+    
+    print(func_sel)
+    
+  } else{
+    func_sel<- input$zoom_ed
+  }
+  
+  graph<-
+  dados_economicos %>%
+  filter(codigo_cofog_pai %in% (dados_economicos %>%
+                               filter(descricao_cofog == func_sel) %>%
+                               select(codigo_cofog))$codigo_cofog) %>%
+  mutate(descricao_cofog = reorder(descricao_cofog, valor),
+         funcao_economica = reorder(funcao_economica, desc(valor))) %>% 
+    
+  ggplot(aes(x=factor(descricao_cofog),valor, fill= funcao_economica))+
+    geom_col()+
+    scale_fill_viridis(discrete=TRUE) +
+    scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
+    theme_light()+ 
+    theme(
+      panel.grid = element_blank(),
+      axis.text.x = element_text(angle = 90),
+      legend.position = ""
+    )+
+  labs(color="",
+       x="",
+       y="Valor gasto no ano (R$ mi)")+
+      
+    coord_flip()
+  
+  if (input$escala){
+    graph+
+    facet_wrap(funcao_economica~., scales = "free_x")
+  } else{
+    graph+
+    facet_wrap(funcao_economica~.)
+  }
+  
+  
+})
+
+
+
+
+```
+
+
+### Principais achados
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse aliquet orci vel laoreet scelerisque. Sed iaculis congue mi, at congue lectus mattis eget. Sed venenatis non dolor sit amet faucibus. Donec mollis sapien nec ligula elementum, vel finibus dolor interdum. Nullam elementum nibh ex, sit amet vehicula elit vulputate non. Sed pulvinar euismod pharetra. Nullam in enim lectus. Vivamus eu dolor enim. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Fusce euismod nulla non eros cursus, at sodales massa efficitur. Donec egestas nunc non enim consequat, tincidunt hendrerit orci tincidunt. Aenean cursus placerat maximus. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla congue mattis enim ac pharetra. In hac habitasse platea dictumst. Integer finibus suscipit sem at dapibus.
+
+Integer suscipit lacinia nibh, eget pellentesque nunc suscipit quis. Maecenas pretium eros ut interdum ullamcorper. Suspendisse potenti. Integer vitae convallis erat. Vivamus in lectus vitae lectus lobortis egestas. Proin eget urna in magna fringilla ultrices. Sed arcu justo, lacinia vel mattis at, mollis sed nisl. Sed at libero commodo metus scelerisque lobortis.
+
+Aliquam ac tincidunt tellus, vitae mattis leo. Donec rhoncus magna massa, in rutrum metus maximus hendrerit. Mauris sagittis finibus nisl et feugiat. Phasellus urna ipsum, sagittis eu sodales et, condimentum sit amet augue. Integer sed interdum lacus, ut venenatis odio. Proin aliquet cursus accumsan. Duis eu mollis sapien.
+
+
+
+
+

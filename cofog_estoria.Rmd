@@ -1,0 +1,61 @@
+---
+title: "Análises de séries temporais do COFOG"
+output:
+  html_document: 
+    theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+
+# Labirinto de Dédalo
+
+Uma percepção das prioridades do governo federal pode ser obtida por meio dos gastos efetuados pelo Tesouro Nacional e pela Previdência Social, especialmente quando se consegue separar a informação por área de atuação. Saúde, Educação e Defesa são algumas das dez áreas padronizadas internacionalmente para avaliar a destinação dos recursos públicos. O fio de Ariadne. 
+
+Em sua maioria, os nomes são aparentemente autoexplicativos, como é o caso da Proteção Social, responsável pela maior parte do gasto do governo federal em 2019. Outras vezes, o título pode ser mais amplo, a exemplo de Serviços Públicos em geral, em que um olhar superficial pode não revelar a melhor informação. A única opção é entrar no labirinto. 
+
+Se o Brasil tivesse um gasto total de R$ 100 em 2019, cerca de R$ 76 estariam alocados nessas duas categorias: Proteção Social e Serviços Públicos em geral. Seguindo essa lógica, aposentadorias da terceira idade e pensões, expressões mais evidentes da Proteção Social, representariam quase R$ 29 desse gasto. Por outro lado, de forma não tão intuitiva, o pagamento de aproximadamente R$ 22 com juros da dívida pública está contido em Serviços Públicos em geral, bem como por volta de R$ 12 transferidos para estados e municípios, a título de repartição obrigatória de recursos da federação brasileira. Desenrolando o novelo.
+
+Todas as outras 8 áreas de atuação do governo federal dividiriam os R$ 24 restantes. Desse grupo, a Educação receberia R$ 7, sendo R$ 3,40 gastos com a educação superior, enquanto outros R$ 3 seriam transferidos aos estados e municípios para serem gastos com os primeiros níveis de ensino. A Saúde, destino de R$ 6,40 do total de R$ 100, tem uma dinâmica parecida, pois se transfere a maior parte desse recurso para ser executado pelos governos regionais, justificado pela responsabilidade do governo central em  organizar e financiar o Sistema Único de Saúde (SUS). Minotauro quase derrotado.
+
+Diante dos R$ 10,70 que ainda restariam, Ordem Pública e Segurança, bem como Defesa, reuniriam mais da metade, ou seja R$ 5,70. Os gastos das cortes judiciais do País responderiam por R$ 2,60, enquanto a defesa militar ficaria com R$ 2. Já a área Assuntos Econômicos, responsável por temas relacionados à combustível e energia, agricultura, pesca, dentre outras atividades econômicas, receberia R$ 4,20. Sobraria menos de um real para as demais três funções. Portanto, se o gasto total fosse R$ 100, oitenta e três centavos seriam divididos por Habitação e Serviços Comunitários, Proteção Ambiental e Lazer, Cultura e Religião. O fio leva à saída do labirinto.  
+
+A visão geral desses gastos aponta a primazia de algumas áreas de atuação, no entanto, parece revelar mais sobre o tamanho das obrigações do governo federal do que sobre suas prioridades. Teseu regressa a Atenas. Entretanto, ao combinar dados de insumos com os gastos de cada área, abre-se a possibilidade de explorar a forma com que o governo desempenha suas funções. Isso indicaria, por exemplo, em quais áreas o investimento ou a remuneração de empregados teriam maior destaque. Dédalo e seu filho Ícaro são aprisionados no labirinto.
+
+Nas próximas sessões o fio de Ariadne é melhor detalhado. Apresentamos aqui as três sessões do aplicativo que explora os dados das despesas públicas a partir de uma visão econômica que é dado pela padronização internacional de gastos públicos reonhecida no manual COFOG.
+
+# Fluxo de despesas
+
+O fluxo de despesa permite compreender como os diversos sub-tipos de depesas se reúnem para formar os dez grupos principais e daí gerar o valor totalizador dos gastos de governo.
+
+Essa é uma figura típica desse fluxo de despesa
+
+![](sankey_cofog.PNG)
+
+## Como usar o Fluxo de despesas
+
+Comece seleiconando a aba correta. A primeira aba é aque contém esse texto. A segunda é a que você pode usar para explorar o fluxo de despesa. Veja a figura.
+
+![](aba_sankey.PNG)
+
+Agora é só escolher o ano no menu
+
+![](menu_sankey.PNG)
+
+E aí vcê vai ver o efeito da sua esolha no gráfico.
+
+Experimente repousar o mouse sobre alguma faixa que liga as caixas dos fluxos. Você perceberá que o gráfico mostra o valor que sai de uma caixa para outra, tal como exemplificado na figura abaixo.
+
+![](mouse_sankey.PNG)
+
+## Principais achados do Fluxo de despesas COFOG
+
+O principal achado da avaliação ao longo dos anos da composicão da estrutura de despesas do governo é que não há mudança de ranking e há bem pouca vairação nos percentuais de função e sub-função de governo.A única exceção é o ano de 2019 em que há uma inversão entre as duas despesas de maior volume. Essa mudança é explicada principalmente pela redução em pagamento de juros. Observe as duas figuras logo abaixo que mostram o fluxo para o ano de 2018 e em seguida o mesmo fluxo para o ano de 2019.
+
+![](sankey_2018.PNG)
+
+![](sankey_2019.PNG)
+
+
