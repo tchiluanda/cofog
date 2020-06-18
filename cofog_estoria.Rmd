@@ -56,6 +56,67 @@ O principal achado da avaliação ao longo dos anos da composicão da estrutura 
 
 ![](sankey_2018.PNG)
 
+Fluxo para o ano de 2018
+
 ![](sankey_2019.PNG)
 
+Fluxo para o ano de 2019
 
+# Especificação dos gastos - Ação de governo
+
+A terceira aba corresponde às análises sobre ações de governo
+
+![](distribuicao_aba.PNG)
+
+Nessa aba é mostrado como se dispera os gastos nas diversas funções e nas ações de governo. O gráfico é montado levando em consideração que os gastos por ação de governo podem ser reunidos em três grandes grupos de acordo com o valor total anual dispendido. Esses grupos são formados a partir de técnicas estatatisticas podendo variar de tamanho e composição a depender do ano selecionado.
+
+Abaixo uma figura que ilustra esse gráfico.
+
+![](distribuicao_cofog.PNG)
+
+## Como explorar o gráfico de gastos por ação de governo.
+
+Através do menu você pode selecioar o ano que deseja explorar. 
+
+
+Há também a possibilidade de se indicar se você deseja dar um zoom nos dados relativos aos grupos 1 e 2 que podem ficar com visualização dificultada a depender do espaço no gráfico ocupado pelo grupo 3. 
+
+![](zoom_distribuicao.PNG)
+
+O gráfico é incialmente construído excibindo todas as açoes de governo que caem nos grupos 2 e 3. Você pode limpara a qualquer momento a seleção das ações que são destacadas no gráfico usando o botão **Limpar Filtro**
+
+![](distribuicao_limpar_filtro.PNG)
+
+Você pode selecionar as açoes que irão ser destacadas no gráfico. A figura abaixo mostra o comando do menu que permite isso. 
+
+![](distribuicao_filtro_acao.PNG)
+
+O bserve na figura acima que as opcoes que são listadas estão separadas por uma barra vertical **|*"**. Essa barra separa as informações de: ação de governo, função de governo e grupo (1, 2 ou 3). Se você quiser que sejam listados nessa caixa as açoes do grupo 2, basta digitar 2 que a caixa vai informar quais são as ações nesse agrupamento. Em seguida, basta selecionar com o mouse as ações que lhe interessa.É importante frisar ainda que essa listagem está em ordem decresente do valor anual gasto por ação de governo. 
+
+![](distribuicao_filtro_grupo_2.PNG)
+
+Dessa listagem, selecionamos a despesa com **Ativos Civis**. Veja abaixo como ficou o gráfico com atenção ao destaque da ação seleionada. Percebam ainda que é uma ação do grupo 2 e que está associada à função de governo **Educação**
+
+![](distribuicao_selecao.PNG)
+
+
+## Principais achados do gráfico de gastos por ação de governo
+
+O que se percebe logo que se vê o gráfico é que duas ações de governo no grupo 3 dominam uma grande área do gráfico.  As ações são juros e benefícios previdenciários urbanos. Afigura logo abaixo mostra essa predominância para o ano de 2019 onde houve uma queda proporcional das despesas com juros, conforme já indicado anteriormente.
+
+![](distribuicao_raia_1_2019.PNG)
+
+Se olharmos o mesmo gráfico para 2015, é notória que o valor pago em juros gera uma diferença muito grande entre as duas ações do grupo 3, fazendo com que a área destinada a esse grupo domine a maior parte do gráfico.
+
+![](distribuicao_raia_1_2015.PNG)
+
+Essas duas ações são as principais causas da concentração das despesas respectivamente nas funções Serviços Públicos Gerais e Proteção social.
+
+Convidamos o leitor a visitar essa aba do aplicativo para fazer outras explorações de dados e gerar novos achados.
+
+
+# Especificação dos gastos - Classificação econômica
+
+A última aba trata de como os gastos são associados à classificação econômica.
+
+![](barra_aba.PNG)
