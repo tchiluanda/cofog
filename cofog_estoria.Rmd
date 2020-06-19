@@ -1,7 +1,10 @@
 ---
 title: "Análises de séries temporais do COFOG"
 output:
-  html_document: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2 
     theme: cerulean
 ---
 
@@ -95,7 +98,7 @@ O bserve na figura acima que as opcoes que são listadas estão separadas por um
 
 ![](distribuicao_filtro_grupo_2.PNG)
 
-Dessa listagem, selecionamos a despesa com **Ativos Civis**. Veja abaixo como ficou o gráfico com atenção ao destaque da ação seleionada. Percebam ainda que é uma ação do grupo 2 e que está associada à função de governo **Educação**
+Dessa listagem, selecionamos a despesa com a ação de governo **Ativos Civis da União**. Veja abaixo como ficou o gráfico com atenção ao destaque da ação selecionada. Percebam ainda que é uma ação do grupo 2 e que está associada à função de governo **Educação**
 
 ![](distribuicao_selecao.PNG)
 
@@ -120,3 +123,43 @@ Convidamos o leitor a visitar essa aba do aplicativo para fazer outras exploraç
 A última aba trata de como os gastos são associados à classificação econômica.
 
 ![](barra_aba.PNG)
+
+Na classificação econômica a ideia é verificar como o total gasto por cada função é distribuído nas categorias econômicas de finanças publicas. A figura abaixo mostra um exmplo de exploração desse dado.
+
+![](barra_exemplo.PNG)
+
+## Como explorar dados da classificação econômica.
+
+Como nas demais abas desse aplicativo, comece aplicando o filtro de data.
+
+Todos os gráficos são exibidos inicialmente com a mesma escala. Essa visualização é importante para se ter a percepção das grandezas dos valores gastos em cada classificação econômica. Por outro lado, não se permite ter a ideia do quanto as funções de governo se diferenciam umas das outras para cada classificação econômica, uma vez que a dominação da escala por uma classificação específica atrapalha a visualização das demais. Para isso, você pode escolher a opção de **Escala livre**. Assim cada gráfico tem uma escala independente.
+
+![](barra_escala_livre.PNG)
+
+Os gráficos mais à direita representam o detalhamento dos gastos por classificação econômica para uma dada função de governo. No menu você pode fazer a opção da função que deseja detalhar.
+
+![](barra_detalhamento.PNG)
+
+## Principais achados sobre classificação econômica
+
+Sem marcar a opção de escala livre, fica muito claro que apenas três classificações econômicas dominam os gráficos. São elas: **Benefícios sociais, Juros e Transferência/Doação**. Quando se cruza essas três classificações com as funções de governo percebe-se que estão associadas a **Serviços Públicos Gerais, Proteção Social, Educação e Saúde**.
+
+![](barra_maiores_geral.PNG)
+
+Já quando se opta pela marcação de escala livre, consegue-se fazer uma análise em despesas que são proporcionalmente muito baixas, mas que são de grande relevância para os debates econômicos. Vê-isso principalmente no caso dos valores de investimento.Veja a figura abaixo.
+
+![](barra_investimentos.PNG)
+
+É interesante observar que quando exploramos os valores de investimento há um destaque para **Defesa**. Essa função conforme já visto no gráfico de Sankey tem em geral um volume muito pequeno de despesa quando comparado com as demais funções. Já quando se trata de investimentos percebe-se o seu protagonismo. A seleção dessa função para análise mais detalhada, permite descobrir que a maior parte dos gastos está concentrada em **Defesa Militar**
+
+
+# Transparência
+
+* Download de Dados: As três abas possuem um link que permite que os dados sejam baixados de acordo com os filtros aplicados
+
+* Dados Abertos: Os dados trabalhados nesse aplicativo estão disponíveis no portal Tesouro Transparente a partir deste [link](https://www.tesourotransparente.gov.br/ckan/dataset/despesas-por-funcao-do-governo-central-classificacao-cofog)
+
+* Código Aberto:  O código para a construção deste aplicativo está disponível no botão **Source Code** no lado direito parte superior da tela.
+
+
+

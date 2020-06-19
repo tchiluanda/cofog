@@ -1,9 +1,11 @@
 ---
-title: "Untitled"
+title: "Painel COFOG"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
     vertical_layout: fill
+    social: menu
+    source_code: embed
 runtime: shiny
 ---
 
@@ -100,14 +102,14 @@ get_dados_cofog_completo<- function(a_ano, a_cofog_path_completo =FALSE){
 
 Visão geral
 =====================================  
-### Textos e infográficos falando do COFOG
+### As despesas nas funções de Governo (COFOG)
 
 
 ```{r}
 
 renderUI({
   
-   tags$iframe(src = "https://tchiluanda.github.io/", height="100%", width="100%")
+   tags$iframe(src = "https://tchiluanda.github.io/cofog/", height="100%", width="100%")
   
 
 })
@@ -132,26 +134,25 @@ Inputs {.sidebar}
 
 
 selectInput("ano","Ano",choices = c("2019":"2010"), selected = "2019")
+downloadLink("download_sankey","Download dados\n\r")
+
+output$download_sankey<- downloadHandler(
+  filename = function() {
+    paste('dados_sankey',  '.csv', sep='')
+  },
+  content = function(file) {
+    write.table(dados_sankey, file, sep = ";",row.names = FALSE,fileEncoding = "UTF-8",dec=",")
+  }
+)
 
 
 
 ```
 
 
-Column {data-width=400}
+Column 
 -----------------------------------------------------------------------
-### Principais achados
-
-- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec quis metus eu nibh congue convallis in non diam. Donec rhoncus vehicula dapibus. Proin in sodales nisi. Quisque id lectus sed est porta lobortis varius ac massa. Phasellus consequat augue eu lorem sollicitudin, ac vehicula massa rutrum. 
-
-- Praesent eleifend sagittis orci ut pretium. Proin pulvinar sem consectetur interdum lobortis. Maecenas eleifend bibendum metus, pharetra fermentum ipsum interdum a. Nullam fringilla orci dolor. Suspendisse eget libero tempor, rutrum nisl id, laoreet mauris. Donec porttitor efficitur nibh. 
-
-- Nam aliquet metus non lobortis laoreet. Sed suscipit fermentum eros, venenatis interdum tortor condimentum at. Duis vulputate condimentum purus eget iaculis. Fusce eleifend scelerisque enim suscipit iaculis. Proin ullamcorper vel ex non suscipit.
-
-
-Column {.tabset .tabset-fade}
------------------------------------------------------------------------
-### Gráfico
+### Gráfico do fluxo de despesas
 
 ```{r}
 
@@ -256,6 +257,8 @@ renderSankeyNetwork({
   dados_net<-
     dados_cofog_completo %>%
     inner_join(pos_pai) 
+    
+  dados_sankey<<-dados_net
   
   
   
@@ -284,12 +287,6 @@ renderSankeyNetwork({
 
 ```
 
-### Botetim do ano selecionado
-
-```{r}
-
-```
-
 Especificação dos Gastos - Ação de Governo
 =====================================  
 
@@ -303,6 +300,18 @@ selectInput("ano_eg","Ano",choices = c("2019":"2010"), selected = "2019")
 checkboxGroupInput ("zoom","Zoom no(s) agrupamento(s)", choices = c("1", "2") )
 actionButton("limpar", "Limpar Filtro")
 selectInput("acao", "Ação de governo", choices = "Ação de governo", multiple = TRUE)
+
+downloadLink("download_distribuicao","Download dados\n\r")
+
+output$download_distribuicao<- downloadHandler(
+  filename = function() {
+    paste('dados_distribuicao',  '.csv', sep='')
+  },
+  content = function(file) {
+    write.table(dados_distribuicao, file, sep = ";",row.names = FALSE,fileEncoding = "UTF-8",dec=",")
+  }
+)
+
 
 
 
@@ -443,6 +452,7 @@ renderPlot({
       min_total = min(total)/10^9
     )
   
+  dados_distribuicao<<- dados_cofog_completo
     
   graph<-
   dados_cofog_completo %>%
@@ -489,6 +499,32 @@ Inputs {.sidebar}
 selectInput("ano_ed","Ano",choices = c("2019":"2010"), selected = "2019")
 checkboxInput("escala","Escala livre", value = FALSE )
 selectInput("zoom_ed","Escolha um tipo de gasto para detalhar", choices = "Serviços públicos gerais", selected = "Serviços públicos gerais")
+
+
+
+downloadLink("download_classificacao_funcao","Download dados\n\r")
+HTML("")
+downloadLink("download_classificacao_subfuncao","Download dados sub-função\n\r")
+
+output$download_classificacao_funcao<- downloadHandler(
+  filename = function() {
+    paste('dados_classificacao_funcao',  '.csv', sep='')
+  },
+  content = function(file) {
+    write.table(dados_classificacao_funcao, file, sep = ";",row.names = FALSE,fileEncoding = "UTF-8",dec=",")
+  }
+)
+
+output$download_classificacao_subfuncao<- downloadHandler(
+  filename = function() {
+    paste('dados_classificacao_subfuncao',  '.csv', sep='')
+  },
+  content = function(file) {
+    write.table(dados_classificacao_subfuncao, file, sep = ";",row.names = FALSE,fileEncoding = "UTF-8",dec=",")
+  }
+)
+
+
 ```
 
 Column 
@@ -503,12 +539,12 @@ Column
 renderPlot({
   
   
-  dados_cofog_completo <- get_dados_cofog_completo(input$ano_ed)
+  
   
   dados_economicos <- get_dados_economicos(input$ano_ed)
 
 
-  
+  dados_classificacao_funcao<<- dados_economicos
 
   graph<-
   dados_economicos %>%
@@ -547,11 +583,11 @@ renderPlot({
 ```
 
 
-Column {.tabset .tabset-fade}
+Column 
 -----------------------------------------------------------------------
 
 
-### Detalhamento por Elemento de Despesa
+### Detalhamento por Função de Governo
 
 ```{r}
 
@@ -586,6 +622,12 @@ renderPlot({
   } else{
     func_sel<- input$zoom_ed
   }
+  
+  dados_classificacao_subfuncao<<- 
+  dados_economicos %>%
+  filter(codigo_cofog_pai %in% (dados_economicos %>%
+                               filter(descricao_cofog == func_sel) %>%
+                               select(codigo_cofog))$codigo_cofog)
   
   graph<-
   dados_economicos %>%
@@ -624,19 +666,4 @@ renderPlot({
 
 
 
-
 ```
-
-
-### Principais achados
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse aliquet orci vel laoreet scelerisque. Sed iaculis congue mi, at congue lectus mattis eget. Sed venenatis non dolor sit amet faucibus. Donec mollis sapien nec ligula elementum, vel finibus dolor interdum. Nullam elementum nibh ex, sit amet vehicula elit vulputate non. Sed pulvinar euismod pharetra. Nullam in enim lectus. Vivamus eu dolor enim. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Fusce euismod nulla non eros cursus, at sodales massa efficitur. Donec egestas nunc non enim consequat, tincidunt hendrerit orci tincidunt. Aenean cursus placerat maximus. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla congue mattis enim ac pharetra. In hac habitasse platea dictumst. Integer finibus suscipit sem at dapibus.
-
-Integer suscipit lacinia nibh, eget pellentesque nunc suscipit quis. Maecenas pretium eros ut interdum ullamcorper. Suspendisse potenti. Integer vitae convallis erat. Vivamus in lectus vitae lectus lobortis egestas. Proin eget urna in magna fringilla ultrices. Sed arcu justo, lacinia vel mattis at, mollis sed nisl. Sed at libero commodo metus scelerisque lobortis.
-
-Aliquam ac tincidunt tellus, vitae mattis leo. Donec rhoncus magna massa, in rutrum metus maximus hendrerit. Mauris sagittis finibus nisl et feugiat. Phasellus urna ipsum, sagittis eu sodales et, condimentum sit amet augue. Integer sed interdum lacus, ut venenatis odio. Proin aliquet cursus accumsan. Duis eu mollis sapien.
-
-
-
-
-
