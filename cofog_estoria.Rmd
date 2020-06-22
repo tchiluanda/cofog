@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
 # Labirinto de Dédalo
 
-Uma percepção das prioridades do governo federal pode ser obtida por meio dos gastos efetuados pelo Tesouro Nacional e pela Previdência Social, especialmente quando se consegue separar a informação por área de atuação. Saúde, Educação e Defesa são algumas das dez áreas padronizadas internacionalmente para avaliar a destinação dos recursos públicos. O fio de Ariadne. 
+Uma percepção das prioridades do governo federal pode ser obtida por meio dos despesas efetuados pelo Tesouro Nacional e pela Previdência Social, especialmente quando se consegue separar a informação por área de atuação. Saúde, Educação e Defesa são algumas das dez áreas padronizadas internacionalmente para avaliar a destinação dos recursos públicos. O fio de Ariadne. 
 
 Em sua maioria, os nomes são aparentemente autoexplicativos, como é o caso da Proteção Social, responsável pela maior parte do gasto do governo federal em 2019. Outras vezes, o título pode ser mais amplo, a exemplo de Serviços Públicos em geral, em que um olhar superficial pode não revelar a melhor informação. A única opção é entrar no labirinto. 
 
@@ -31,7 +31,7 @@ Nas próximas sessões o fio de Ariadne é melhor detalhado. Apresentamos aqui a
 
 # Fluxo de despesas
 
-O fluxo de despesa permite compreender como os diversos sub-tipos de depesas se reúnem para formar os dez grupos principais e daí gerar o valor totalizador dos gastos de governo.
+O fluxo de despesa permite compreender como os diversos sub-tipos de depesas se reúnem para formar os dez grupos principais e daí gerar o valor totalizador das despesas de governo.
 
 Essa é uma figura típica desse fluxo de despesa
 
@@ -39,7 +39,7 @@ Essa é uma figura típica desse fluxo de despesa
 
 ## Como usar o Fluxo de despesas
 
-Comece seleiconando a aba correta. A primeira aba é aque contém esse texto. A segunda é a que você pode usar para explorar o fluxo de despesa. Veja a figura.
+Comece seleicionando a aba correta. A primeira aba é aque contém esse texto. A segunda é a que você pode usar para explorar o fluxo de despesa. Veja a figura.
 
 ![](aba_sankey.PNG)
 
@@ -47,7 +47,7 @@ Agora é só escolher o ano no menu
 
 ![](menu_sankey.PNG)
 
-E aí vcê vai ver o efeito da sua esolha no gráfico.
+E aí vcê vai ver o efeito da sua escolha no gráfico.
 
 Experimente repousar o mouse sobre alguma faixa que liga as caixas dos fluxos. Você perceberá que o gráfico mostra o valor que sai de uma caixa para outra, tal como exemplificado na figura abaixo.
 
@@ -55,7 +55,7 @@ Experimente repousar o mouse sobre alguma faixa que liga as caixas dos fluxos. V
 
 ## Principais achados do Fluxo de despesas COFOG
 
-O principal achado da avaliação ao longo dos anos da composicão da estrutura de despesas do governo é que não há mudança de ranking e há bem pouca vairação nos percentuais de função e sub-função de governo.A única exceção é o ano de 2019 em que há uma inversão entre as duas despesas de maior volume. Essa mudança é explicada principalmente pela redução em pagamento de juros. Observe as duas figuras logo abaixo que mostram o fluxo para o ano de 2018 e em seguida o mesmo fluxo para o ano de 2019.
+O principal achado da avaliação ao longo dos anos da composicão da estrutura de despesas do governo é que não há mudança de ranking e há bem pouca variação nos percentuais de função e sub-função de governo.A única exceção é o ano de 2019 em que há uma inversão entre as duas despesas de maior volume. Essa mudança é explicada principalmente pela redução em pagamento de juros. Observe as duas figuras logo abaixo que mostram o fluxo para o ano de 2018 e em seguida o mesmo fluxo para o ano de 2019.
 
 ![](sankey_2018.PNG)
 
@@ -65,28 +65,28 @@ Fluxo para o ano de 2018
 
 Fluxo para o ano de 2019
 
-# Especificação dos gastos - Ação de governo
+# Especificação das Despesas - Ação de governo
 
 A terceira aba corresponde às análises sobre ações de governo
 
 ![](distribuicao_aba.PNG)
 
-Nessa aba é mostrado como se dispera os gastos nas diversas funções e nas ações de governo. O gráfico é montado levando em consideração que os gastos por ação de governo podem ser reunidos em três grandes grupos de acordo com o valor total anual dispendido. Esses grupos são formados a partir de técnicas estatatisticas podendo variar de tamanho e composição a depender do ano selecionado.
+Nessa aba é mostrado como se dispersa as despesas nas diversas funções e nas ações de governo. O gráfico é montado levando em consideração que as despesas por ação de governo podem ser reunidos em três grupos de acordo com o valor total anual dispendido. Esses grupos são formados a partir de técnicas estatísticas podendo variar de tamanho e de composição a depender do ano selecionado.
 
 Abaixo uma figura que ilustra esse gráfico.
 
 ![](distribuicao_cofog.PNG)
 
-## Como explorar o gráfico de gastos por ação de governo.
+## Como explorar o gráfico de despesas por ação de governo.
 
-Através do menu você pode selecioar o ano que deseja explorar. 
+Através do menu você pode selecionar o ano que deseja explorar. 
 
 
 Há também a possibilidade de se indicar se você deseja dar um zoom nos dados relativos aos grupos 1 e 2 que podem ficar com visualização dificultada a depender do espaço no gráfico ocupado pelo grupo 3. 
 
 ![](zoom_distribuicao.PNG)
 
-O gráfico é incialmente construído excibindo todas as açoes de governo que caem nos grupos 2 e 3. Você pode limpara a qualquer momento a seleção das ações que são destacadas no gráfico usando o botão **Limpar Filtro**
+O gráfico é inicialmente construído exibindo todas as ações de governo que caem nos grupos 2 e 3. Você pode limpar a qualquer momento a seleção das ações que são destacadas no gráfico usando o botão **Limpar Filtro**
 
 ![](distribuicao_limpar_filtro.PNG)
 
@@ -94,7 +94,7 @@ Você pode selecionar as açoes que irão ser destacadas no gráfico. A figura a
 
 ![](distribuicao_filtro_acao.PNG)
 
-O bserve na figura acima que as opcoes que são listadas estão separadas por uma barra vertical **|*"**. Essa barra separa as informações de: ação de governo, função de governo e grupo (1, 2 ou 3). Se você quiser que sejam listados nessa caixa as açoes do grupo 2, basta digitar 2 que a caixa vai informar quais são as ações nesse agrupamento. Em seguida, basta selecionar com o mouse as ações que lhe interessa.É importante frisar ainda que essa listagem está em ordem decresente do valor anual gasto por ação de governo. 
+Observe na figura acima que as opcoes que são listadas estão separadas por uma barra vertical **|***. Essa barra separa as informações de: ação de governo, função de governo e grupo (1, 2 ou 3). Se você quiser que sejam listados nessa caixa as açoes do grupo 2, basta digitar 2 que a caixa vai informar quais são as ações nesse agrupamento. Em seguida, basta selecionar com o mouse as ações que lhe interessa.É importante frisar ainda que essa listagem está em ordem decresente do valor anual gasto por ação de governo. 
 
 ![](distribuicao_filtro_grupo_2.PNG)
 
@@ -103,9 +103,9 @@ Dessa listagem, selecionamos a despesa com a ação de governo **Ativos Civis da
 ![](distribuicao_selecao.PNG)
 
 
-## Principais achados do gráfico de gastos por ação de governo
+## Principais achados do gráfico de despesas por ação de governo
 
-O que se percebe logo que se vê o gráfico é que duas ações de governo no grupo 3 dominam uma grande área do gráfico.  As ações são juros e benefícios previdenciários urbanos. Afigura logo abaixo mostra essa predominância para o ano de 2019 onde houve uma queda proporcional das despesas com juros, conforme já indicado anteriormente.
+O que se percebe logo que se vê o gráfico é que duas ações de governo no grupo 3 dominam uma grande área do gráfico. As ações desse grupo são juros e benefícios previdenciários urbanos. A figura logo abaixo mostra essa predominância para o ano de 2019 onde houve uma queda proporcional das despesas com juros, conforme já indicado anteriormente.
 
 ![](distribuicao_raia_1_2019.PNG)
 
@@ -118,13 +118,13 @@ Essas duas ações são as principais causas da concentração das despesas resp
 Convidamos o leitor a visitar essa aba do aplicativo para fazer outras explorações de dados e gerar novos achados.
 
 
-# Especificação dos gastos - Classificação econômica
+# Especificação das despesas - Classificação econômica
 
 A última aba trata de como os gastos são associados à classificação econômica.
 
 ![](barra_aba.PNG)
 
-Na classificação econômica a ideia é verificar como o total gasto por cada função é distribuído nas categorias econômicas de finanças publicas. A figura abaixo mostra um exmplo de exploração desse dado.
+Na classificação econômica a ideia é verificar como o total gasto por cada função é distribuído nas categorias econômicas de finanças públicas. A figura abaixo mostra um exemplo de exploração desse dado.
 
 ![](barra_exemplo.PNG)
 
@@ -132,11 +132,11 @@ Na classificação econômica a ideia é verificar como o total gasto por cada f
 
 Como nas demais abas desse aplicativo, comece aplicando o filtro de data.
 
-Todos os gráficos são exibidos inicialmente com a mesma escala. Essa visualização é importante para se ter a percepção das grandezas dos valores gastos em cada classificação econômica. Por outro lado, não se permite ter a ideia do quanto as funções de governo se diferenciam umas das outras para cada classificação econômica, uma vez que a dominação da escala por uma classificação específica atrapalha a visualização das demais. Para isso, você pode escolher a opção de **Escala livre**. Assim cada gráfico tem uma escala independente.
+Todos os gráficos são exibidos inicialmente com a mesma escala. Essa visualização é importante para se ter a percepção das grandezas dos valores gastos em cada classificação econômica. Por outro lado, não se permite ter a ideia do quanto as funções de governo se diferenciam umas das outras para cada classificação econômica, uma vez que a dominação da escala por uma classificação específica atrapalha a visualização das demais. Para isso, você pode escolher a opção **Escala livre**. Assim cada gráfico tem uma escala independente.
 
 ![](barra_escala_livre.PNG)
 
-Os gráficos mais à direita representam o detalhamento dos gastos por classificação econômica para uma dada função de governo. No menu você pode fazer a opção da função que deseja detalhar.
+Os gráficos mais à direita na tela representam o detalhamento dos gastos por classificação econômica para uma dada função de governo. No menu você pode fazer a opção da função que deseja detalhar.
 
 ![](barra_detalhamento.PNG)
 
@@ -146,11 +146,11 @@ Sem marcar a opção de escala livre, fica muito claro que apenas três classifi
 
 ![](barra_maiores_geral.PNG)
 
-Já quando se opta pela marcação de escala livre, consegue-se fazer uma análise em despesas que são proporcionalmente muito baixas, mas que são de grande relevância para os debates econômicos. Vê-isso principalmente no caso dos valores de investimento.Veja a figura abaixo.
+Já quando se opta pela marcação de escala livre, consegue-se fazer uma análise em despesas que são proporcionalmente muito baixas, mas que são de grande relevância para os debates econômicos. Vê-isso principalmente no caso dos valores de investimento. Veja a figura abaixo.
 
 ![](barra_investimentos.PNG)
 
-É interesante observar que quando exploramos os valores de investimento há um destaque para **Defesa**. Essa função conforme já visto no gráfico de Sankey tem em geral um volume muito pequeno de despesa quando comparado com as demais funções. Já quando se trata de investimentos percebe-se o seu protagonismo. A seleção dessa função para análise mais detalhada, permite descobrir que a maior parte dos gastos está concentrada em **Defesa Militar**
+É interesante observar que quando exploramos os valores de investimento há um destaque para **Defesa**. Essa função conforme já visto no gráfico de fluxo tem em geral um volume muito pequeno de despesa quando comparado com as demais funções. Já quando se trata de investimentos percebe-se o seu protagonismo. A seleção dessa função para análise mais detalhada, permite descobrir que a maior parte das despesas está concentrada em **Defesa Militar**
 
 
 # Transparência

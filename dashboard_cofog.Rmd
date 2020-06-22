@@ -123,7 +123,7 @@ renderUI({
 
 
 
-Fluxo Gastos COFOG
+Fluxo Despesas COFOG
 =====================================  
 
 Inputs {.sidebar}
@@ -134,7 +134,16 @@ Inputs {.sidebar}
 
 
 selectInput("ano","Ano",choices = c("2019":"2010"), selected = "2019")
-downloadLink("download_sankey","Download dados\n\r")
+
+# Create placeholder for the downloadButton
+uiOutput("downloadUI_sankey")
+# Create the actual downloadButton
+output$downloadUI_sankey <- renderUI( {
+  downloadButton("download_sankey","Download dados", style = "width:100%;")
+})
+
+
+#downloadLink("download_sankey","Download dados\n\r")
 
 output$download_sankey<- downloadHandler(
   filename = function() {
@@ -287,7 +296,7 @@ renderSankeyNetwork({
 
 ```
 
-Especificação dos Gastos - Ação de Governo
+Especificação das Despesas - Ação de Governo
 =====================================  
 
 Inputs {.sidebar}
@@ -301,7 +310,15 @@ checkboxGroupInput ("zoom","Zoom no(s) agrupamento(s)", choices = c("1", "2") )
 actionButton("limpar", "Limpar Filtro")
 selectInput("acao", "Ação de governo", choices = "Ação de governo", multiple = TRUE)
 
-downloadLink("download_distribuicao","Download dados\n\r")
+# Create placeholder for the downloadButton
+uiOutput("downloadUI_distribuicao")
+# Create the actual downloadButton
+output$downloadUI_distribuicao <- renderUI( {
+  downloadButton("download_distribuicao","Download dados", style = "width:100%;")
+})
+
+
+#downloadLink("download_distribuicao","Download dados")
 
 output$download_distribuicao<- downloadHandler(
   filename = function() {
@@ -487,7 +504,7 @@ renderPlot({
 
 ```
 
-Especificação dos Gastos - Classificação Econômica
+Especificação das Despesas - Classificação Econômica
 =====================================  
 
 Inputs {.sidebar}
@@ -501,10 +518,22 @@ checkboxInput("escala","Escala livre", value = FALSE )
 selectInput("zoom_ed","Escolha um tipo de gasto para detalhar", choices = "Serviços públicos gerais", selected = "Serviços públicos gerais")
 
 
+# Create placeholder for the downloadButton
+uiOutput("downloadUI_func")
+uiOutput("downloadUI_sub_func")
+```
 
-downloadLink("download_classificacao_funcao","Download dados\n\r")
-HTML("")
-downloadLink("download_classificacao_subfuncao","Download dados sub-função\n\r")
+```{r}
+# Create the actual downloadButton
+output$downloadUI_func <- renderUI( {
+  downloadButton("download_classificacao_funcao","Download dados", style = "width:100%;")
+})
+
+output$downloadUI_sub_func <- renderUI( {
+  downloadButton("download_classificacao_subfuncao","Download dados sub-função", style = "width:100%;")
+})
+
+
 
 output$download_classificacao_funcao<- downloadHandler(
   filename = function() {
