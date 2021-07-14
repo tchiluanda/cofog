@@ -116,7 +116,7 @@ dados_tree_view%>%
     root = "Gastos com funções de governo",
     width = 800,
     attribute = "total_gasto",
-    #nodeSize = "total_gasto",
+    #nodeSize = "total_norm",
     zoomable = FALSE
   )
 
@@ -159,5 +159,33 @@ dados_cofog %>%
     x= "Funções de governo" 
   )
   
+
+library(purrr)
+
+Base_COFOG<- map_dfr(2010:2019, function(a_ano){
+  file<- paste0("Base-COFOG-",a_ano,"-TT.xlsx")
+  print(file)
+  
+  # read_excel("Base-COFOG-2019-TT.xlsx", 
+  #            col_types = c("numeric", "text", "numeric", 
+  #                          "text", "text", "text", "text", "text", 
+  #                          "text", "text", "text", "text", "numeric", 
+  #                          "text"))
+  ds_file<- read_excel(file)
+  ds_file<-ds_file[,c(1:14)]
+  #names(Base_COFOG)[c(7,13:14)]<-c("acao_governo","valor","codigo_cofog")
+  #names(Base_COFOG)[c(11,13:14)]<-c("unidade_orcamentaria","valor","codigo_cofog")
+  
+  
+  names(ds_file)[c(1,3,5,7,11,13,14)]<-c("ano", "ndd","cod_mod_aplic","acao_governo","unidade_orcamentaria","valor","codigo_cofog")
+  ds_file$cod_mod_aplic<-as.character(ds_file$cod_mod_aplic)
+  ds_file$ndd<- as.character(ds_file$ndd)
+  ds_file
+})
+
+
+save(list=c("Base_COFOG"),file="COFOG.RData")
+
+
   
   
