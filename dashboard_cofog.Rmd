@@ -31,43 +31,115 @@ library(stringr)
 
 options(shiny.usecairo=T)
 
+#Mudar essa atribuição a cada virada de ano
+cofog_ano_corrente<- "COFOGGCO290621.xlsx"
+primeiro_ano<- 2010
+ultimo_ano<-2020
+
+num_skip<- ultimo_ano - 2010 + 1  
+
 #"Source Sans Pro",Calibri,Candara,Arial,sans-serifbody
 
 #tags$style(type="text/css", "text {font-family: Source Sans Pro}")
 
-COFOG_GC <- read_excel("COFOG GC.xlsx", 
-                         sheet = "despesa_funcao", col_types = c("text", 
-                                                                 "text", "skip", "skip", "skip", "skip", 
-                                                                 "skip", "skip", "skip", "skip", "skip"), 
+COFOG_GC <- read_excel(cofog_ano_corrente, 
+                         sheet = "1.1", col_types = c("text", 
+                                                                 "text", rep("skip",num_skip)), 
                          skip = 2)
   
   
 names(COFOG_GC)<- c("codigo_cofog","descricao_cofog")
+
+COFOG_GC<-
+COFOG_GC %>%
+  mutate(descricao_cofog = case_when(
+    	descricao_cofog == "Despesa total3/" ~  "Despesa total" ,
+    	descricao_cofog == "Transações da dívida pública4/" ~ "Transações da dívida pública",
+    	descricao_cofog == "Educação infantil e ensino fundamental I5/"~ "Educação infantil e ensino fundamental I",
+    	descricao_cofog == "Sobreviventes" ~"Pensionistas",
+    	TRUE ~descricao_cofog
+    	
+    	
+  ))
+
 
 primeira_vez<<- TRUE
 primeira_vez_elemento<<- TRUE
 
 load("COFOG.RData")
 
-tab_elemento_despesa <- read_csv("tab_elemento_despesa.csv", 
+#altera o nome das colunas para compatibilizar com o restante do código
+Base_COFOG<-
+ Base_COFOG %>%
+    rename(ano = ano_de_lancamento,
+           codigo_cofog= classificacao_cofog_codigo,
+           descricao_cofog= classificacao_cofog_descricao_completa,
+           valor = valor_r_milhoes,
+           funcao_economica = classificacao_economica_gfs_descricao_completa,
+           acao_governo= acao_governo_descricao) %>%
+  mutate(codigo_cofog = as.character(codigo_cofog))
+
+
+tab_elemento_despesa <- read_csv("https://raw.githubusercontent.com/tchiluanda/cofog/master/tab_elemento_despesa.csv", 
     col_types = cols(elemento_despesa = col_character()))
 
 get_dados_economicos<- function(a_ano){
   
-  sheet<- paste0("Funcao_Economica_",a_ano)
-  COFOG_GC <- read_excel("COFOG GC.xlsx", sheet = sheet, 
-    skip = 3)
-  names(COFOG_GC)[1]<-"codigo_cofog"
-  names(COFOG_GC)[2]<-"descricao_cofog"
   
-  COFOG_GC_gather<-
-  COFOG_GC %>%
-    select(-11)%>%
-    gather(funcao_economica, valor, -c(1,2)) %>%
-    filter(codigo_cofog!="7") %>%
-    mutate(funcao_economica = str_sub(funcao_economica,5,100),
-           codigo_cofog_pai = ifelse(str_length(codigo_cofog)==3,"7",str_sub(codigo_cofog,1,3)) )
-
+  # Base_COFOG %>%
+  #   filter(ano == a_ano) %>%
+  #   filter(codigo_cofog!="7") %>%
+  #   mutate(codigo_cofog_pai = ifelse(str_length(codigo_cofog)==3,"7",str_sub(codigo_cofog,1,3)) ) %>%
+  #   mutate(funcao_economica = str_squish(funcao_economica)) %>%
+  #   mutate(descricao_cofog = str_squish(descricao_cofog)) %>%
+  #   separate(funcao_economica, into = c("gfs_pai","gfs_filho"), sep = "-") %>%
+  #   mutate(funcao_economica = gfs_filho) %>%
+  #   separate(descricao_cofog, into = c("cofog_pai","cofog_filho"), sep = "-") %>%
+  #   mutate(descricao_cofog_pai = cofog_pai) %>%
+  #   mutate(descricao_cofog_filho = cofog_filho) %>%
+  #   mutate(funcao_economica = str_trim(funcao_economica, side = "both")) %>%
+  #   mutate(descricao_cofog_filho = str_trim(descricao_cofog_filho, side = "both")) %>%
+  #   mutate(descricao_cofog_pai = str_trim(descricao_cofog_pai, side = "both")) %>%
+  #   select(codigo_cofog,
+  #          descricao_cofog_filho,
+  #          descricao_cofog_pai,
+  #          funcao_economica,
+  #          valor,
+  #          codigo_cofog_pai)%>%
+  #   mutate(descricao_cofog_pai = case_when(
+  #     descricao_cofog_pai == "Despesa total3/" ~  "Despesa total" ,
+  #     descricao_cofog_pai == "Transações da dívida pública4/" ~ "Transações da dívida pública",
+  #     descricao_cofog_pai == "Educação infantil e ensino fundamental I5/"~ "Educação infantil e ensino fundamental I",
+  #     descricao_cofog_pai == "Sobreviventes" ~"Pensionistas",
+  #     TRUE ~descricao_cofog_pai
+  #   )) %>%
+  #   group_by(codigo_cofog_pai,
+  #            codigo_cofog,
+  #            descricao_cofog_pai,
+  #            descricao_cofog_filho,
+  #            funcao_economica) %>%
+  #   summarise(
+  #     valor = sum(valor)
+  #   ) %>%
+  #   ungroup()
+  
+  
+  
+  
+  # sheet<- paste0("Funcao_Economica_",a_ano)
+  # COFOG_GC <- read_excel("COFOG GC.xlsx", sheet = sheet,
+  #   skip = 3)
+  # names(COFOG_GC)[1]<-"codigo_cofog"
+  # names(COFOG_GC)[2]<-"descricao_cofog"
+  # 
+  # COFOG_GC_gather<-
+  # COFOG_GC %>%
+  #   select(-11)%>%
+  #   gather(funcao_economica, valor, -c(1,2)) %>%
+  #   filter(codigo_cofog!="7") %>%
+  #   mutate(funcao_economica = str_sub(funcao_economica,5,100),
+  #          codigo_cofog_pai = ifelse(str_length(codigo_cofog)==3,"7",str_sub(codigo_cofog,1,3)) )
+  
 }
 
 
@@ -79,6 +151,7 @@ get_dados_cofog_completo<- function(a_ano, a_cofog_path_completo =FALSE){
     filter(ano==a_ano) %>%
     mutate(codigo_cofog_pai = stringr::str_sub(codigo_cofog,1,3),
            acao_governo = ifelse(acao_governo == "ND", ajustes,acao_governo)) %>%
+    select(-descricao_cofog) %>%
     inner_join(COFOG_GC) %>%
     inner_join(COFOG_GC, by = c("codigo_cofog_pai"="codigo_cofog")) %>%
     rename(descricao_cofog =  descricao_cofog.x,
@@ -117,7 +190,7 @@ renderUI({
 
 
 ```
-```
+
 
 
 
@@ -133,7 +206,7 @@ Inputs {.sidebar}
 # shiny inputs defined here
 
 
-selectInput("ano","Ano",choices = c("2019":"2010"), selected = "2019")
+selectInput("ano","Ano",choices = c(ultimo_ano:primeiro_ano), selected = ultimo_ano)
 
 # Create placeholder for the downloadButton
 uiOutput("downloadUI_sankey")
@@ -161,19 +234,20 @@ output$download_sankey<- downloadHandler(
 
 Column 
 -----------------------------------------------------------------------
-### Gráfico do fluxo de despesas
+### Gráfico do fluxo de despesas (Valores em R$ bi)
 
 ```{r}
 
-tags$style("
-              body {
-    -moz-transform: scale(0.80, 0.80); /* Moz-browsers */
-    zoom: 0.80; /* Other non-webkit browsers */
-    zoom: 80%; /* Webkit browsers */
-}
-              ")
+# tags$style("
+#               body {
+#     -moz-transform: scale(0.80, 0.80); /* Moz-browsers */
+#     zoom: 0.80; /* Other non-webkit browsers */
+#     zoom: 80%; /* Webkit browsers */
+# }
+#              ")
 
 renderSankeyNetwork({
+  
   library(readxl)
   library(ggplot2)
   
@@ -200,6 +274,7 @@ renderSankeyNetwork({
   dados_cofog_pai<-
     Base_COFOG %>%
     mutate(codigo_cofog = stringr::str_sub(codigo_cofog,1,3)) %>%
+    select(-descricao_cofog) %>%
     inner_join( COFOG_GC) %>%
     mutate(descricao_cofog_pai = "Gastos com funções de governo") %>%
     group_by(descricao_cofog_pai, descricao_cofog) %>%
@@ -223,6 +298,7 @@ renderSankeyNetwork({
   dados_cofog_raiz<-  
     Base_COFOG %>%
     mutate(codigo_pai = stringr::str_sub(codigo_cofog,1,3)) %>%
+    select(-descricao_cofog) %>%
     inner_join( COFOG_GC) %>%
     mutate(codigo_filho = codigo_cofog) %>%
     mutate(descricao_cofog_filho = descricao_cofog) %>%
@@ -245,7 +321,7 @@ renderSankeyNetwork({
   dados_cofog_completo<-
     dados_cofog_completo%>%
     ungroup() %>%
-    mutate(total_gasto = total_gasto / 10^9) %>%
+    mutate(total_gasto = total_gasto / 10^3) %>%
     mutate(descricao_cofog= reorder(descricao_cofog, total_gasto)) %>%
     arrange(desc(descricao_cofog)) %>%
     mutate (source = row_number() -1) 
@@ -286,7 +362,7 @@ renderSankeyNetwork({
   
   sankeyNetwork(Links = links, Nodes = nodes, Source = "source",
                 Target = "destination", Value = "total_gasto", NodeID = "descricao_cofog",
-                units = "", fontSize = 12, nodeWidth = 30, NodeGroup = "descricao_cofog_pai")
+                units = "", fontSize = 12, nodeWidth = 30, nodePadding =5, NodeGroup = "descricao_cofog_pai")
   
   
   
@@ -296,7 +372,7 @@ renderSankeyNetwork({
 
 ```
 
-Especificação das Despesas - Ação de Governo
+Especificação das Despesas - Ação de Governo 
 =====================================  
 
 Inputs {.sidebar}
@@ -305,7 +381,7 @@ Inputs {.sidebar}
 ```{r}
 # shiny inputs defined here
 
-selectInput("ano_eg","Ano",choices = c("2019":"2010"), selected = "2019")
+selectInput("ano_eg","Ano",choices = c(ultimo_ano:primeiro_ano), selected = ultimo_ano)
 checkboxGroupInput ("zoom","Zoom no(s) agrupamento(s)", choices = c("1", "2") )
 actionButton("limpar", "Limpar Filtro")
 selectInput("acao", "Ação de governo", choices = "Ação de governo", multiple = TRUE)
@@ -370,7 +446,7 @@ Column
 -----------------------------------------------------------------------
 
 
-### Gráfico de distribuição por Ação de Governo
+### Gráfico de distribuição por Ação de Governo (Valores em R$ bi)
 
 ```{r}
 
@@ -403,6 +479,14 @@ renderPlot({
     ) %>%
     filter(total>0) %>%
     arrange(desc(total))
+    
+  info<-sessioninfo::session_info()  
+  
+  if (info$platform$version != "R version 3.5.3 (2019-03-11)"){
+   eval(parse(text='RNGkind(sample.kind = "Rounding")')) 
+  }
+  
+    
   
   set.seed(1972)
   #model<- pam(x = df_cluster[,4], k = 3)
@@ -466,21 +550,31 @@ renderPlot({
     filter(cluster==3) %>%
     group_by(cluster)%>%
     summarise(
-      min_total = min(total)/10^9
+      min_total = min(total)/10^3
     )
   
   dados_distribuicao<<- dados_cofog_completo
-    
-  graph<-
+  
+   graph<-
   dados_cofog_completo %>%
     filter(cluster %in% filter_cluster) %>%
     anti_join(dados_filtrados) %>%
-    ggplot(aes(x=str_wrap(cofog_path,15), y= total/10^9, color= cofog_path))+ 
-    geom_jitter( show.legend = FALSE, size=4, height = 0, width = ifelse(dados_cofog_completo$cluster==1,0.4,0.1), alpha = 0.3)+  
-    geom_text_repel(data= dados_filtrados,aes(label = str_wrap(paste(acao_governo, as.character(round(total/10^9,2)), sep=": "),20) ),  show.legend = FALSE, box.padding = unit(0.45, "lines")) +
-    geom_jitter(data= dados_filtrados,  size = 4, show.legend = FALSE, height = 0, width = ifelse(dados_filtrados$cluster==1,0.2,0.1),alpha = 1) +
-    scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
-    #scale_color_viridis(discrete=TRUE, option = "E") +
+    ggplot(aes(x=str_wrap(cofog_path,15), y= total/10^3))+ 
+    geom_jitter(aes(fill= cofog_path), show.legend = FALSE, size=4, height = 0, width = ifelse(dados_cofog_completo$cluster==1,0.4,0.1), alpha = 0.3, pch=21, color="white")+  
+    geom_jitter( data= dados_filtrados,  size = 4, show.legend = FALSE, height = 0, width = ifelse(dados_filtrados$cluster==1,0.2,0.1),alpha = 0.5, fill = "black", pch=21, color="white") +
+  geom_text_repel(data= dados_filtrados,
+                  aes(label = str_wrap(paste(str_to_lower(acao_governo) ,
+                  as.character(round(total/10^3,2)), sep=": "),20) ),  
+                  show.legend = FALSE, 
+                  box.padding = unit(1, "lines"), 
+                  color = "black", 
+                  alpha =0.8, 
+                  size =3.2,
+                  set.seed = 1972,
+                  segment.linetype = 5,
+                  segment.alpha = 0.5) +
+
+    scale_y_continuous(labels=function(x) format(x,decimal.mark=",", big.mark = ".", scientific = FALSE)) +
     scale_color_discrete_qualitative(palette = "Dark 3")+
     theme_light()+ 
     theme(
@@ -488,11 +582,13 @@ renderPlot({
       axis.text.x = element_text()
       
     )+
-  labs(color="",
+  labs(fill="",
        x="",
        y="Valor gasto no ano (R$ bi)") +
-  facet_grid(cluster~., scales = "free_y" ,  space = "free_y") 
-  
+  facet_grid(cluster~., scales = "free_y" ,  space = "free_y")
+
+    
+
   if (is.null(input$zoom)){
     graph<- graph+ geom_text(data = dados_alerta, aes(x=1.2, y= min_total,  label="<---Mudança de escala"), color = "red")
   }
@@ -513,7 +609,7 @@ Inputs {.sidebar}
 ```{r}
 # shiny inputs defined here
 
-selectInput("ano_ed","Ano",choices = c("2019":"2010"), selected = "2019")
+selectInput("ano_ed","Ano",choices = c(ultimo_ano:primeiro_ano), selected = ultimo_ano)
 checkboxInput("escala","Escala livre", value = FALSE )
 selectInput("zoom_ed","Escolha um tipo de gasto para detalhar", choices = "Serviços públicos gerais", selected = "Serviços públicos gerais")
 
@@ -572,16 +668,15 @@ renderPlot({
   
   dados_economicos <- get_dados_economicos(input$ano_ed)
 
-
-  dados_classificacao_funcao<<- dados_economicos
+  #dados_economicos$descricao_cofog <- dados_economicos$descricao_cofog_pai 
+  
+  #dados_classificacao_funcao<<- dados_economicos
 
   graph<-
   dados_economicos %>%
-  filter(codigo_cofog_pai == "7") %>%
-  mutate(descricao_cofog = reorder(descricao_cofog, valor),
+  mutate(descricao_cofog_pai =  reorder(descricao_cofog_pai, valor),
          funcao_economica = reorder(funcao_economica, desc(valor))) %>% 
-    
-  ggplot(aes(x=factor(descricao_cofog),valor, fill= funcao_economica))+
+  ggplot(aes(x=descricao_cofog_pai,valor, fill= funcao_economica))+
     geom_col()+
     scale_fill_viridis(discrete=TRUE) +
     scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
@@ -590,20 +685,21 @@ renderPlot({
       panel.grid = element_blank(),
       axis.text.x = element_text(angle = 90),
       #axis.text.x = element_blank(),
-      legend.position = ""
+      legend.position = "",
+      strip.background = element_rect(fill= "white"),
+      strip.text = element_text(color = "black")
     )+
   labs(color="",
        x="",
        y="Valor gasto no ano (R$ mi)")+
-      
-    coord_flip()
+  coord_flip()
   
   if (input$escala){
     graph+
-    facet_wrap(funcao_economica~., scales = "free_x")
+    facet_wrap(str_wrap( funcao_economica,20)~., scales = "free_x")
   } else{
     graph+
-    facet_wrap(funcao_economica~.)
+    facet_wrap(str_wrap( funcao_economica,20)~.)
   }
   
 })
@@ -626,13 +722,15 @@ renderPlot({
   #dados_economicos <- get_dados_economicos(2019)
   dados_economicos <- get_dados_economicos(input$ano_ed)
   
+  dados_economicos$descricao_cofog <-  dados_economicos$descricao_cofog_pai
+  
   
   if (primeira_vez_elemento){
     choice<- 
       dados_economicos %>%
-      filter(codigo_cofog_pai == "7") %>%
+      #filter(codigo_cofog_pai == "7") %>%
       arrange(desc(valor)) %>%
-      select(descricao_cofog)
+      distinct(descricao_cofog)
     
     print(choice)
     
@@ -652,21 +750,17 @@ renderPlot({
     func_sel<- input$zoom_ed
   }
   
-  dados_classificacao_subfuncao<<- 
-  dados_economicos %>%
-  filter(codigo_cofog_pai %in% (dados_economicos %>%
-                               filter(descricao_cofog == func_sel) %>%
-                               select(codigo_cofog))$codigo_cofog)
+
   
   graph<-
   dados_economicos %>%
   filter(codigo_cofog_pai %in% (dados_economicos %>%
                                filter(descricao_cofog == func_sel) %>%
-                               select(codigo_cofog))$codigo_cofog) %>%
-  mutate(descricao_cofog = reorder(descricao_cofog, valor),
+                               select(codigo_cofog_pai))$codigo_cofog_pai) %>%
+  mutate(descricao_cofog_filho = reorder(descricao_cofog_filho, valor),
          funcao_economica = reorder(funcao_economica, desc(valor))) %>% 
     
-  ggplot(aes(x=factor(descricao_cofog),valor, fill= funcao_economica))+
+  ggplot(aes(x=factor(descricao_cofog_filho),valor, fill= funcao_economica))+
     geom_col()+
     scale_fill_viridis(discrete=TRUE) +
     scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
@@ -674,7 +768,9 @@ renderPlot({
     theme(
       panel.grid = element_blank(),
       axis.text.x = element_text(angle = 90),
-      legend.position = ""
+      legend.position = "",
+      strip.background = element_rect(fill= "white"),
+      strip.text = element_text(color = "black")
     )+
   labs(color="",
        x="",
@@ -684,10 +780,10 @@ renderPlot({
   
   if (input$escala){
     graph+
-    facet_wrap(funcao_economica~., scales = "free_x")
+    facet_wrap(str_wrap(funcao_economica,20)~., scales = "free_x")
   } else{
     graph+
-    facet_wrap(funcao_economica~.)
+    facet_wrap(str_wrap(funcao_economica,20)~.)
   }
   
   

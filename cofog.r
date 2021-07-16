@@ -1,6 +1,11 @@
 library(readxl)
 library(ggplot2)
 library(dplyr)
+library(ckanr)
+
+
+
+
 COFOG_GC <- read_excel("COFOG/COFOG GC.xlsx", 
                        sheet = "despesa_funcao", col_types = c("text", 
                                                                "text", "skip", "skip", "skip", "skip", 
@@ -22,10 +27,10 @@ dados_cofog_pai<-
   inner_join( COFOG_GC) %>%
   mutate(descricao_cofog_pai = "Gastos com funções de governo") %>%
   group_by(descricao_cofog_pai, descricao_cofog) %>%
-    summarise(
-      total_gasto = sum(valor)
-    )
-  
+  summarise(
+    total_gasto = sum(valor)
+  )
+
 dados_total<-
   dados_cofog_pai %>%
   ungroup() %>%
@@ -37,10 +42,10 @@ dados_total<-
   )
 
 
-  
-  
+
+
 dados_cofog_raiz<-  
-Base_COFOG_2019_TT %>%
+  Base_COFOG_2019_TT %>%
   mutate(codigo_pai = stringr::str_sub(codigo_cofog,1,3)) %>%
   inner_join( COFOG_GC) %>%
   mutate(codigo_filho = codigo_cofog) %>%
@@ -68,8 +73,8 @@ dados_cofog_completo<-
 
 pai<-
   (dados_cofog_completo %>%
-  filter(!is.na(descricao_cofog_pai)) %>%
-  distinct(descricao_cofog_pai))$descricao_cofog_pai
+     filter(!is.na(descricao_cofog_pai)) %>%
+     distinct(descricao_cofog_pai))$descricao_cofog_pai
 
 pos_pai <-
   dados_cofog_completo %>%
@@ -78,11 +83,11 @@ pos_pai <-
   mutate(descricao_cofog_pai =descricao_cofog ) %>%
   mutate(destination = source) %>%
   select(descricao_cofog_pai, destination)
-  
+
 dados_net<-
-dados_cofog_completo %>%
+  dados_cofog_completo %>%
   inner_join(pos_pai)
-  
+
 
 nodes<- dados_cofog_completo %>%
   select(descricao_cofog)
@@ -95,14 +100,14 @@ links<-
          total_gasto)
 
 networkD3::
-
-sankeyNetwork(Links = links, Nodes = nodes, Source = "source",
-              Target = "destination", Value = "total_gasto", NodeID = "descricao_cofog",
-              units = "", fontSize = 12, nodeWidth = 30)
+  
+  sankeyNetwork(Links = links, Nodes = nodes, Source = "source",
+                Target = "destination", Value = "total_gasto", NodeID = "descricao_cofog",
+                units = "", fontSize = 12, nodeWidth = 30)
 
 
 dados_tree_view<-
-dados_cofog_raiz %>%
+  dados_cofog_raiz %>%
   mutate(raiz= "Gastos com funções de governo") %>%
   mutate(total_norm = (scale(total_gasto, center = FALSE))+1)
 
@@ -134,9 +139,9 @@ Geography %>%
   )
 
 networkD3::
-
-
-write.csv2(dados_cofog, file = "dados_cofog_2019.csv", fileEncoding = "UTF-8")
+  
+  
+  write.csv2(dados_cofog, file = "dados_cofog_2019.csv", fileEncoding = "UTF-8")
 
 library(ggdark)
 library(rcartocolor)
@@ -148,8 +153,8 @@ dados_cofog %>%
   ungroup() %>%
   mutate(descricao_cofog = reorder(descricao_cofog, total_gasto)) %>%
   ggplot() +
-    geom_col(aes(x= descricao_cofog, y= total_gasto/10^9, fill= descricao_cofog)) +
-    coord_flip()+
+  geom_col(aes(x= descricao_cofog, y= total_gasto/10^9, fill= descricao_cofog)) +
+  coord_flip()+
   dark_theme_minimal(base_family = font_rc, base_size = 16)+
   scale_fill_carto_d(palette = "Mint", direction = -1, guide = NULL)+
   scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE))+
@@ -158,7 +163,7 @@ dados_cofog %>%
     y = "Gastos (R$ bi)",
     x= "Funções de governo" 
   )
-  
+
 
 library(purrr)
 
@@ -187,5 +192,40 @@ Base_COFOG<- map_dfr(2010:2019, function(a_ano){
 save(list=c("Base_COFOG"),file="COFOG.RData")
 
 
+##########################Versão 2021 para dados até 2020
+
+library(readxl)
+library(ckanr)
+library(purrr)
+
+ckanr::package_search()
+
+package<- ckanr::package_show(id= "22d13d17-bf69-4a1a-add2-25cc1e25f2d7", 
+                              url= "https://www.tesourotransparente.gov.br/ckan") #busca todos os dados do dataset que se refere aos dados de COFOG
+
+
+
+
+
+
+df_base_cofog<- #percorre todos os recursos do dataset para montar um único dataframe com os dados anuais com maio nível de detalhe
+map_dfr(1:length(package[["resources"]]), function(a_pos){
+  print(a_pos)
+  if (substr(package[["resources"]][[a_pos]]$name,1,10)== "Base COFOG"){ #testa se é uma tabela dos dados anuais completa
+    tmp = tempfile(fileext = ".xlsx")
+    
+    URL_add<- package[["resources"]][[a_pos]]$url
+    
+    df_cofog<-download.file(URL_add,mode = "wb", destfile = tmp, extra = "-R", method = "libcurl")
+    df_cofog <- readxl::read_xlsx(tmp)
+    df_cofog <- janitor::clean_names(df_cofog)
+    df_cofog$natureza_despesa_detalhada <- as.character(df_cofog$natureza_despesa_detalhada)
+    df_cofog
+    
+  }
   
-  
+})
+
+Base_COFOG<- df_base_cofog
+
+save(list=c("Base_COFOG"),file="COFOG.RData")
