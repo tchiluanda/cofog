@@ -5,9 +5,20 @@ output:
     orientation: columns
     vertical_layout: fill
     social: menu
-    source_code: embed
+    source_code: https://github.com/tchiluanda/cofog
 runtime: shiny
 ---
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147616071-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147616071-2');
+</script>
+
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
@@ -27,6 +38,9 @@ library(colorspace)
 library(cluster)
 library(tidyr)
 library(stringr)
+
+#novas libraries
+library(purrr)
 
 
 options(shiny.usecairo=T)
@@ -85,61 +99,57 @@ tab_elemento_despesa <- read_csv("https://raw.githubusercontent.com/tchiluanda/c
 
 get_dados_economicos<- function(a_ano){
   
-  
-  # Base_COFOG %>%
-  #   filter(ano == a_ano) %>%
-  #   filter(codigo_cofog!="7") %>%
-  #   mutate(codigo_cofog_pai = ifelse(str_length(codigo_cofog)==3,"7",str_sub(codigo_cofog,1,3)) ) %>%
-  #   mutate(funcao_economica = str_squish(funcao_economica)) %>%
-  #   mutate(descricao_cofog = str_squish(descricao_cofog)) %>%
-  #   separate(funcao_economica, into = c("gfs_pai","gfs_filho"), sep = "-") %>%
-  #   mutate(funcao_economica = gfs_filho) %>%
-  #   separate(descricao_cofog, into = c("cofog_pai","cofog_filho"), sep = "-") %>%
-  #   mutate(descricao_cofog_pai = cofog_pai) %>%
-  #   mutate(descricao_cofog_filho = cofog_filho) %>%
-  #   mutate(funcao_economica = str_trim(funcao_economica, side = "both")) %>%
-  #   mutate(descricao_cofog_filho = str_trim(descricao_cofog_filho, side = "both")) %>%
-  #   mutate(descricao_cofog_pai = str_trim(descricao_cofog_pai, side = "both")) %>%
-  #   select(codigo_cofog,
-  #          descricao_cofog_filho,
-  #          descricao_cofog_pai,
-  #          funcao_economica,
-  #          valor,
-  #          codigo_cofog_pai)%>%
-  #   mutate(descricao_cofog_pai = case_when(
-  #     descricao_cofog_pai == "Despesa total3/" ~  "Despesa total" ,
-  #     descricao_cofog_pai == "Transações da dívida pública4/" ~ "Transações da dívida pública",
-  #     descricao_cofog_pai == "Educação infantil e ensino fundamental I5/"~ "Educação infantil e ensino fundamental I",
-  #     descricao_cofog_pai == "Sobreviventes" ~"Pensionistas",
-  #     TRUE ~descricao_cofog_pai
-  #   )) %>%
-  #   group_by(codigo_cofog_pai,
-  #            codigo_cofog,
-  #            descricao_cofog_pai,
-  #            descricao_cofog_filho,
-  #            funcao_economica) %>%
-  #   summarise(
-  #     valor = sum(valor)
-  #   ) %>%
-  #   ungroup()
+
+  indice_sheet<-as.numeric(a_ano)-2010+1
+  sheet<- paste0("2.",indice_sheet)
   
   
+  COFOG_GC_names<- read_excel(cofog_ano_corrente, sheet = sheet, 
+                         skip = 2, n_max = 1) 
   
+  COFOG_GC_dados <- read_excel(cofog_ano_corrente, sheet = sheet, 
+                         skip = 4)
   
-  # sheet<- paste0("Funcao_Economica_",a_ano)
-  # COFOG_GC <- read_excel("COFOG GC.xlsx", sheet = sheet,
-  #   skip = 3)
-  # names(COFOG_GC)[1]<-"codigo_cofog"
-  # names(COFOG_GC)[2]<-"descricao_cofog"
-  # 
-  # COFOG_GC_gather<-
-  # COFOG_GC %>%
-  #   select(-11)%>%
-  #   gather(funcao_economica, valor, -c(1,2)) %>%
-  #   filter(codigo_cofog!="7") %>%
-  #   mutate(funcao_economica = str_sub(funcao_economica,5,100),
-  #          codigo_cofog_pai = ifelse(str_length(codigo_cofog)==3,"7",str_sub(codigo_cofog,1,3)) )
+  COFOG_GC<- COFOG_GC_dados
   
+  names(COFOG_GC)<- names(COFOG_GC_names)
+  names(COFOG_GC)[1]<-"codigo_cofog"
+  names(COFOG_GC)[2]<-"descricao_cofog"
+  
+  COFOG_GC[,3]<-  COFOG_GC_dados[,3]+
+             COFOG_GC_dados[,4]+
+             COFOG_GC_dados[,5]
+  
+  COFOG_GC <- COFOG_GC[,-c(4:5)]
+
+  COFOG_GC_gather<-
+    COFOG_GC %>%
+    select(-11)%>%
+    gather(funcao_economica, valor, -c(1,2)) %>%
+    filter(codigo_cofog!="7") %>%
+    mutate(funcao_economica = str_sub(funcao_economica,5,100),
+           codigo_cofog_pai = ifelse(str_length(codigo_cofog)==3,"7",str_sub(codigo_cofog,1,3)) )
+  
+  COFOG_GC_gather<-
+  COFOG_GC_gather%>%
+    mutate(descricao_cofog = case_when(
+      descricao_cofog == "Despesa total3" ~  "Despesa total" ,
+      descricao_cofog == "Transações da dívida pública4" ~ "Transações da dívida pública",
+      descricao_cofog == "Educação infantil e ensino fundamental I5"~ "Educação infantil e ensino fundamental I",
+      descricao_cofog == "Sobreviventes" ~"Pensionistas",
+      TRUE ~descricao_cofog
+    )) %>%
+    mutate(funcao_economica = case_when(
+      	 funcao_economica == " Juros4" ~  "Juros",
+      	 funcao_economica == " Remuneração de empregados6" ~ "Remuneração de empregados",
+      	 funcao_economica == " Investimento bruto 7/" ~  "Investimento bruto",
+      	 funcao_economica == " Investimento bruto em ativos não financeiros7" ~ "Investimento bruto em ativos não financeiros",
+      	 TRUE ~ funcao_economica
+    ))
+  
+  COFOG_GC_gather$ano<- a_ano
+
+  COFOG_GC_gather
 }
 
 
@@ -170,6 +180,35 @@ get_dados_cofog_completo<- function(a_ano, a_cofog_path_completo =FALSE){
   
 }
 
+base_grafico<- 
+  map_dfr(primeiro_ano:ultimo_ano, get_dados_economicos) %>%
+  mutate(descricao_cofog = case_when(
+    	descricao_cofog == "Despesa total3/" ~  "Despesa total" ,
+    	descricao_cofog == "Transações da dívida pública4/" ~ "Transações da dívida pública",
+    	descricao_cofog == "Educação infantil e ensino fundamental I5/"~ "Educação infantil e ensino fundamental I",
+    	descricao_cofog == "Sobreviventes" ~"Pensionistas",
+    	TRUE ~descricao_cofog
+    	
+    	
+  ))
+
+
+get_top_n_funcao <- function(n){
+    fun_sel<-
+    base_grafico %>%
+    filter(codigo_cofog_pai == 7) %>%
+    group_by(descricao_cofog) %>%
+    summarise(
+      total= sum(valor)
+    ) %>%
+    slice_max(order_by = total,n=n) %>%
+    ungroup() %>%
+    select(descricao_cofog)
+    
+    fun_sel$descricao_cofog
+
+  
+}
 ```
 
 
@@ -362,7 +401,7 @@ renderSankeyNetwork({
   
   sankeyNetwork(Links = links, Nodes = nodes, Source = "source",
                 Target = "destination", Value = "total_gasto", NodeID = "descricao_cofog",
-                units = "", fontSize = 12, nodeWidth = 30, nodePadding =5, NodeGroup = "descricao_cofog_pai")
+                units = "", fontSize = 8, nodeWidth = 30, nodePadding =6, NodeGroup = "descricao_cofog_pai")
   
   
   
@@ -372,7 +411,7 @@ renderSankeyNetwork({
 
 ```
 
-Especificação das Despesas - Ação de Governo 
+Ação de Governo 
 =====================================  
 
 Inputs {.sidebar}
@@ -569,7 +608,7 @@ renderPlot({
                   box.padding = unit(1, "lines"), 
                   color = "black", 
                   alpha =0.8, 
-                  size =3.2,
+                  size =3,
                   set.seed = 1972,
                   segment.linetype = 5,
                   segment.alpha = 0.5) +
@@ -600,7 +639,7 @@ renderPlot({
 
 ```
 
-Especificação das Despesas - Classificação Econômica
+Classificação Econômica
 =====================================  
 
 Inputs {.sidebar}
@@ -611,7 +650,7 @@ Inputs {.sidebar}
 
 selectInput("ano_ed","Ano",choices = c(ultimo_ano:primeiro_ano), selected = ultimo_ano)
 checkboxInput("escala","Escala livre", value = FALSE )
-selectInput("zoom_ed","Escolha um tipo de gasto para detalhar", choices = "Serviços públicos gerais", selected = "Serviços públicos gerais")
+selectInput("zoom_ed","Escolha um tipo de gasto para detalhar na segunda aba", choices = "Serviços públicos gerais", selected = "Serviços públicos gerais")
 
 
 # Create placeholder for the downloadButton
@@ -652,7 +691,7 @@ output$download_classificacao_subfuncao<- downloadHandler(
 
 ```
 
-Column 
+Column {.tabset .tabset-fade}
 -----------------------------------------------------------------------
 
 
@@ -668,16 +707,17 @@ renderPlot({
   
   dados_economicos <- get_dados_economicos(input$ano_ed)
 
-  #dados_economicos$descricao_cofog <- dados_economicos$descricao_cofog_pai 
-  
-  #dados_classificacao_funcao<<- dados_economicos
+
+  dados_classificacao_funcao<<- dados_economicos
 
   graph<-
   dados_economicos %>%
-  mutate(descricao_cofog_pai =  reorder(descricao_cofog_pai, valor),
+  filter(codigo_cofog_pai == "7") %>%
+  mutate(descricao_cofog = reorder(descricao_cofog, valor),
          funcao_economica = reorder(funcao_economica, desc(valor))) %>% 
-  ggplot(aes(x=descricao_cofog_pai,valor, fill= funcao_economica))+
-    geom_col()+
+    
+  ggplot(aes(x=factor(descricao_cofog),valor, fill= funcao_economica))+
+    geom_col(color = "white")+
     scale_fill_viridis(discrete=TRUE) +
     scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
     theme_light()+ 
@@ -686,90 +726,7 @@ renderPlot({
       axis.text.x = element_text(angle = 90),
       #axis.text.x = element_blank(),
       legend.position = "",
-      strip.background = element_rect(fill= "white"),
-      strip.text = element_text(color = "black")
-    )+
-  labs(color="",
-       x="",
-       y="Valor gasto no ano (R$ mi)")+
-  coord_flip()
-  
-  if (input$escala){
-    graph+
-    facet_wrap(str_wrap( funcao_economica,20)~., scales = "free_x")
-  } else{
-    graph+
-    facet_wrap(str_wrap( funcao_economica,20)~.)
-  }
-  
-})
-
-
-```
-
-
-Column 
------------------------------------------------------------------------
-
-
-### Detalhamento por Função de Governo
-
-```{r}
-
-renderPlot({
-  #dados_cofog_completo <- get_dados_cofog_completo(input$ano_ed)
-  
-  #dados_economicos <- get_dados_economicos(2019)
-  dados_economicos <- get_dados_economicos(input$ano_ed)
-  
-  dados_economicos$descricao_cofog <-  dados_economicos$descricao_cofog_pai
-  
-  
-  if (primeira_vez_elemento){
-    choice<- 
-      dados_economicos %>%
-      #filter(codigo_cofog_pai == "7") %>%
-      arrange(desc(valor)) %>%
-      distinct(descricao_cofog)
-    
-    print(choice)
-    
-    
-    a_choice<- choice$descricao_cofog
-    
-    print(a_choice[1])
-    updateSelectInput(session = session, inputId = "zoom_ed", choices = a_choice, selected = a_choice[1] )
-    
-    primeira_vez_elemento<<- FALSE
-    
-    func_sel<- input$zoom_ed
-    
-    print(func_sel)
-    
-  } else{
-    func_sel<- input$zoom_ed
-  }
-  
-
-  
-  graph<-
-  dados_economicos %>%
-  filter(codigo_cofog_pai %in% (dados_economicos %>%
-                               filter(descricao_cofog == func_sel) %>%
-                               select(codigo_cofog_pai))$codigo_cofog_pai) %>%
-  mutate(descricao_cofog_filho = reorder(descricao_cofog_filho, valor),
-         funcao_economica = reorder(funcao_economica, desc(valor))) %>% 
-    
-  ggplot(aes(x=factor(descricao_cofog_filho),valor, fill= funcao_economica))+
-    geom_col()+
-    scale_fill_viridis(discrete=TRUE) +
-    scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
-    theme_light()+ 
-    theme(
-      panel.grid = element_blank(),
-      axis.text.x = element_text(angle = 90),
-      legend.position = "",
-      strip.background = element_rect(fill= "white"),
+      strip.background = element_blank(),
       strip.text = element_text(color = "black")
     )+
   labs(color="",
@@ -780,15 +737,251 @@ renderPlot({
   
   if (input$escala){
     graph+
-    facet_wrap(str_wrap(funcao_economica,20)~., scales = "free_x")
+    facet_wrap(funcao_economica~., scales = "free_x")
   } else{
     graph+
-    facet_wrap(str_wrap(funcao_economica,20)~.)
+    facet_wrap(funcao_economica~.)
   }
   
+})
+
+
+```
+
+
+### Detalhamento por Função de Governo
+
+```{r}
+
+renderPlot({
+  #dados_cofog_completo <- get_dados_cofog_completo(input$ano_ed)
+
+  #dados_economicos <- get_dados_economicos(2019)
+  dados_economicos <- get_dados_economicos(input$ano_ed)
+
+
+
+  if (primeira_vez_elemento){
+    choice<- 
+      dados_economicos %>%
+      filter(codigo_cofog_pai == "7") %>%
+      arrange(desc(valor)) %>%
+      select(descricao_cofog)
+    
+    #print(choice)
+    
+    
+    a_choice<- choice$descricao_cofog
+    
+    #print(a_choice[1])
+    updateSelectInput(session = session, inputId = "zoom_ed", choices = a_choice, selected = a_choice[1] )
+    
+    primeira_vez_elemento<<- FALSE
+    
+    func_sel<- input$zoom_ed
+    
+    #print(func_sel)
+    
+  } else{
+    func_sel<- input$zoom_ed
+  }
+  
+  dados_classificacao_subfuncao<<- 
+  dados_economicos %>%
+  filter(codigo_cofog_pai %in% (dados_economicos %>%
+                               filter(descricao_cofog == func_sel) %>%
+                               select(codigo_cofog))$codigo_cofog)
+  
+  graph<-
+  dados_economicos %>%
+  filter(codigo_cofog_pai %in% (dados_economicos %>%
+                               filter(descricao_cofog == func_sel) %>%
+                               select(codigo_cofog))$codigo_cofog) %>%
+  mutate(descricao_cofog = reorder(descricao_cofog, valor),
+         funcao_economica = reorder(funcao_economica, desc(valor))) %>% 
+    
+  ggplot(aes(x=factor(descricao_cofog),valor, fill= funcao_economica))+
+    geom_col(color = "white")+
+    scale_fill_viridis(discrete=TRUE) +
+    #scale_color_discrete_qualitative(palette = "Dark 2")+
+    scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
+    theme_light()+ 
+    theme(
+      panel.grid = element_blank(),
+      axis.text.x = element_text(angle = 90),
+      legend.position = "",
+      strip.background = element_blank(),
+      strip.text = element_text(color = "black")
+    )+
+  labs(color="",
+       x="",
+       y="Valor gasto no ano (R$ mi)")+
+      
+    coord_flip()
+  
+  if (input$escala){
+    graph+
+    facet_wrap(funcao_economica~., scales = "free_x")
+  } else{
+    graph+
+    facet_wrap(funcao_economica~.)
+  }
+
+
+})
+
+
+
+```
+
+Séries temporais
+=====================================  
+
+Inputs {.sidebar}
+-------------------------------------
+
+```{r}
+# shiny inputs defined here
+
+selectInput("funcao_serie","Escolha uma ou mais funções",choices = unique(base_grafico$descricao_cofog), selected = get_top_n_funcao(5), multiple = TRUE)
+
+
+# Create placeholder for the downloadButton
+uiOutput("downloadUI_serie")
+
+```
+
+```{r}
+# Create the actual downloadButton
+output$downloadUI_serie <- renderUI( {
+  downloadButton("download_serie","Download dados", style = "width:100%;")
+})
+
+
+
+output$download_serie<- downloadHandler(
+  filename = function() {
+    paste('dados_serie_funcao',  '.csv', sep='')
+  },
+  content = function(file) {
+    write.table(dados_serie, file, sep = ";",row.names = FALSE,fileEncoding = "UTF-8",dec=",")
+  }
+)
+
+
+
+```
+
+Column
+-----------------------------------------------------------------------
+
+### Série temporal de função de governo
+
+```{r}
+
+renderPlotly({
+  despesa_total_anual<-
+    base_grafico %>%
+    filter(codigo_cofog_pai == 7) %>%
+    mutate(ano = as.character(ano)) %>%
+    group_by(ano) %>%
+    summarise(
+      total_ano = sum(valor)
+    )
+  
+
+  
+  dados_serie<<-
+    base_grafico %>%
+    filter(descricao_cofog %in% input$funcao_serie) %>%
+    mutate(ano = as.character(ano)) %>%
+    group_by(ano, descricao_cofog) %>%
+    summarise(
+      total = sum(valor)
+    ) %>%
+    inner_join(despesa_total_anual)
+  
+  graph<-
+  dados_serie %>%
+    mutate(percentual =round((total/total_ano)*100,2)) %>%
+    rename(Função = descricao_cofog) %>%
+    mutate(Função = str_wrap(Função,20) ) %>%
+    ggplot()+
+    geom_line(aes(x= ano, y= percentual, group = Função, color = Função)) +
+    #geom_col(aes(x=ano, y= total/10^3, fill= descricao_cofog), position = "fill") +
+    #scale_fill_viridis(discrete = TRUE) +
+    
+    scale_color_viridis(discrete = TRUE) +
+    scale_y_continuous(labels=function(x) format(x, big.mark = ".",decimal.mark = ",", scientific = FALSE)) +
+    theme_light()+ 
+    theme(
+      panel.grid = element_blank()
+    )+
+    labs(color=str_wrap("Função",20),
+         x="",
+         y="% do gasto total")
+  
+  
+  ggplotly(graph, tooltip = c("x","y","colour"))
   
 })
 
 
 
 ```
+
+
+Distribuição percentual anual
+=====================================  
+
+
+
+```{r}
+
+renderPlot({
+  top_4<-
+    base_grafico %>%
+    filter(descricao_cofog %in% get_top_n_funcao(4)) %>%
+    mutate(ano = as.character(ano)) %>%
+    group_by(ano, descricao_cofog) %>%
+    summarise(
+      total = sum(valor)
+    ) %>%
+    ungroup()
+  
+  
+  
+  
+  demais <-
+    base_grafico %>%
+    filter( codigo_cofog_pai == 7,
+            !descricao_cofog %in% get_top_n_funcao(4) ) %>%
+    mutate(ano = as.character(ano)) %>%
+    mutate(descricao_cofog = "Demais funções") %>%
+    group_by(ano, descricao_cofog) %>%
+    summarise(
+      total = sum(valor)
+    ) %>%
+    ungroup()
+  
+  top_4%>%
+    bind_rows(
+      demais
+    ) %>%
+    mutate(descricao_cofog = reorder(descricao_cofog, total)) %>%
+    ggplot()+
+    geom_col(aes(x=ano, y= total, fill= descricao_cofog), position = "fill") +
+    scale_fill_viridis(discrete = TRUE)+
+    theme_light()+ 
+    theme(
+      panel.grid = element_blank()
+    )+
+    labs(fill=str_wrap("Função",20),
+         x="",
+         y="% do gasto total")
+  
+})
+
+
+```
+
