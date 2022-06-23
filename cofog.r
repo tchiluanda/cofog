@@ -4,7 +4,7 @@ library(dplyr)
 library(ckanr)
 
 
-
+####################VErsão antiga (início)
 
 COFOG_GC <- read_excel("COFOG/COFOG GC.xlsx", 
                        sheet = "despesa_funcao", col_types = c("text", 
@@ -190,6 +190,9 @@ Base_COFOG<- map_dfr(2010:2019, function(a_ano){
 
 
 save(list=c("Base_COFOG"),file="COFOG.RData")
+####################VErsão antiga (fim)
+
+
 
 
 ##########################Versão 2021 para dados até 2020

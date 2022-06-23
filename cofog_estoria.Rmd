@@ -12,23 +12,27 @@ output:
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
-![](labirinto.png)
+![](labirinto.jpg)
+
+Foto: <a href="https://unsplash.com/@qwitka?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Maksym Kaharlytskyi</a> em <a href="https://unsplash.com/s/photos/maze-of-dedalus?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+  
 
 # Labirinto de Dédalo
 
 Uma percepção das prioridades do governo federal pode ser obtida por meio da análise das despesas executadas, especialmente quando se consegue separar a informação por área de atuação. Saúde, Educação e Defesa são algumas das dez áreas, ou funções, padronizadas internacionalmente para avaliar a destinação dos recursos públicos. O fio de Ariadne. 
 
-Em sua maioria, os nomes são aparentemente autoexplicativos, como é o caso da Proteção Social, responsável pela maior parte do gasto do governo federal em 2020. Outras vezes, o título pode ser mais amplo, a exemplo de Serviços Públicos em geral, em que um olhar superficial pode não revelar a melhor informação. A única opção é entrar no labirinto. 
+Em sua maioria, os nomes são aparentemente autoexplicativos, como é o caso da Proteção Social, responsável pela maior parte do gasto do governo federal em 2021. Outras vezes, o título pode ser mais amplo, a exemplo de Serviços Públicos em geral, em que um olhar superficial pode não revelar a melhor informação. A única opção é entrar no labirinto. 
 
-Se o governo federal tivesse um gasto total de R$ 100 em 2020, cerca de R$ 79 estariam alocados nessas duas categorias: Proteção Social e Serviços Públicos em geral. No ano de 2020 a pandemia mostrou a cara no labirinto. Se em 2019 aposentadorias da terceira idade e pensões representariam quase R$ 29 do gasto, em 2020 quem apareceu fortemente foram os gastos com Exclusão social não categorizadas. Tal gasto ultrapassa os valores dispendidos com pensionistas e corresponde de forma isolada a R$ 11 dos R$ 100 gastos pelo governo central no primeiro ano da pandemia. Por outro lado, de forma não tão intuitiva, o pagamento de aproximadamente R$ 16 com juros da dívida pública está contido em Serviços Públicos em geral, bem como por volta de R$ 13 transferidos para estados e municípios, a título de repartição obrigatória de recursos da federação brasileira. Desenrolando o novelo.
+Se o governo federal tivesse um gasto total de R$ 100 em 2021, cerca de R$ 78 estariam alocados nessas duas categorias: Proteção Social e Serviços Públicos em geral. Se observarmos o ano de 2020 a pandemia mostrou a cara no labirinto. Se em 2019 aposentadorias da terceira idade e pensões representariam quase R$ 29 do gasto, em 2020 quem apareceu fortemente foram os gastos com Exclusão social não categorizadas. Tal gasto ultrapassou os valores dispendidos com pensionistas e corresponderam de forma isolada a R$ 11 dos R$ 100 gastos pelo governo central no primeiro ano da pandemia. Por outro lado, de forma não tão intuitiva, o pagamento de aproximadamente R$ 16 com juros da dívida pública está contido em Serviços Públicos em geral, bem como por volta de R$ 13 transferidos para estados e municípios, a título de repartição obrigatória de recursos da federação brasileira. Desenrolando o novelo.
 
-Todas as outras 8 áreas de atuação do governo federal dividiriam os R$ 21 restantes. Desse grupo, a Educação receberia R$ 5,90, sendo R$ 2,56 gastos com a educação superior, enquanto outros R$ 3,34 seriam transferidos aos estados e municípios para serem gastos com os primeiros níveis de ensino. A Saúde, destino de R$ 7,20 do total de R$ 100, tem uma dinâmica parecida, pois se transfere a maior parte desse recurso para ser executado pelos governos regionais, justificado pela responsabilidade do governo central em  organizar e financiar o Sistema Único de Saúde (SUS). Minotauro quase derrotado. Aqui vale destacar novamente o impacto da pandemia. Esse ano é a primeira vez que Saúde ultrapassa Educação nos gastos do governo central. 
+Voltando a 2021, todas as outras 8 áreas de atuação do governo federal dividiriam os R$ 22 restantes. Desse grupo, a Educação receberia R$ 6,83, sendo R$ 2,59 gastos com a educação superior, enquanto outros R$ 2,39 seriam transferidos aos estados e municípios para serem gastos com os primeiros níveis de ensino. A Saúde, destino de R$ 7,71 do total de R$ 100, tem uma dinâmica parecida, pois se transfere a maior parte desse recurso para ser executado pelos governos regionais, justificado pela responsabilidade do governo central em  organizar e financiar o Sistema Único de Saúde (SUS). Minotauro quase derrotado. Aqui vale destacar novamente o impacto da pandemia. Esse ano é a segunda vez que Saúde ultrapassa Educação nos gastos do governo central. 
 
-Diante dos R$ 7,90 que ainda restariam, Ordem Pública e Segurança, bem como Defesa, reuniriam mais da metade, ou seja R$ 4,90.Já a área Assuntos Econômicos, responsável por temas relacionados à combustível e energia, agricultura, pesca, dentre outras atividades econômicas, receberia R$ 1,90. Sobraria um pouco mais de um real para as demais três funções. Portanto, se o gasto total fosse R$ 100, um real e dez centavos seriam divididos por Habitação e Serviços Comunitários, Proteção Ambiental e Lazer, Cultura e Religião. O fio leva à saída do labirinto.  
+Diante dos R$ 7,45 que ainda restariam, Ordem Pública e Segurança, bem como Defesa, reuniriam mais da metade, ou seja R$ 4,91.Já a área Assuntos Econômicos, responsável por temas relacionados à combustível e energia, agricultura, pesca, dentre outras atividades econômicas, receberia R$ 1,90. Sobraria um pouco mais de um real para as demais três funções. Portanto, se o gasto total fosse R$ 100, um real e dez centavos seriam divididos por Habitação e Serviços Comunitários, Proteção Ambiental e Lazer, Cultura e Religião. O fio leva à saída do labirinto.  
 
 A visão geral desses gastos aponta a primazia de algumas áreas de atuação, no entanto, parece revelar mais sobre o tamanho das obrigações do governo federal do que sobre suas prioridades. Teseu regressa a Atenas. Entretanto, ao combinar dados de insumos com os gastos de cada área, abre-se a possibilidade de explorar a forma com que o governo desempenha suas funções. Isso indicaria, por exemplo, em quais áreas o investimento ou a remuneração de empregados teriam maior destaque. Dédalo e seu filho Ícaro são aprisionados no labirinto.
 
-Nas próximas sessões o fio de Ariadne é melhor detalhado. Apresentamos aqui as três sessões do aplicativo que explora os dados seguindo a padronização internacional definida pela Classificação por Função de Governo da OCDE/ONU (COFOG ‐ Classification of Functions of Government).
+Nas próximas sessões o fio de Ariadne é melhor detalhado. Apresentamos aqui as três sessões do aplicativo que explora os dados seguindo a padronização internacional definida pela Classificação por Função de Governo da OCDE/ONU (COFOG ‐ Classification of Functions of Government). ^[Até o final de Outubro de 2021 os dados brutos do COFOG serão atualizados após um trabalho em conjunto com o IBGE. Em seguida, depois de alguns dias, essas atualizações serão refletidas nesta aplicação]
+
 # Fluxo de despesas
 
 O fluxo de despesa permite compreender como os diversos subtipos de despesas se reúnem para formar os dez grupos principais e daí gerar o valor totalizador das despesas de governo.
@@ -186,7 +190,7 @@ A sexta aba também é novidade para a versão atual da aplicação. Aqui pode-s
 
 * Código Aberto:  O código para a construção deste aplicativo está disponível no botão **Source Code** no lado direito parte superior da tela.
 
-* Relatórios: https://www.tesouro.fazenda.gov.br/-/estatisticas-de-financas-publicas
+* Relatórios: https://www.tesourotransparente.gov.br/publicacoes/cofog-despesas-por-funcao-do-governo-central
 
 
 
