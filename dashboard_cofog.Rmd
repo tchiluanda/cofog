@@ -48,9 +48,9 @@ options(shiny.usecairo=T)
 #Mudar essa atribuição a cada virada de ano
 #cofog_ano_corrente<- "COFOGGCO290621.xlsx"
 
-cofog_ano_corrente<- "COFOG-GCO.xlsx"
+cofog_ano_corrente<-"COFOG GCO_valores.xlsx"  #"COFOG-GCO.xlsx"
 primeiro_ano<- 2010
-ultimo_ano<-2021
+ultimo_ano<-2022
 
 num_skip<- ultimo_ano - 2010 + 1  
 

@@ -232,3 +232,87 @@ map_dfr(1:length(package[["resources"]]), function(a_pos){
 Base_COFOG<- df_base_cofog
 
 save(list=c("Base_COFOG"),file="COFOG.RData")
+
+
+
+##########################Versão 2022 para dados até 2021
+
+library(readxl)
+library(readr)
+library(ckanr)
+library(purrr)
+
+
+package<- ckanr::package_show(id= "22d13d17-bf69-4a1a-add2-25cc1e25f2d7", 
+                              url= "https://www.tesourotransparente.gov.br/ckan") #busca todos os dados do dataset que se refere aos dados de COFOG
+
+
+
+
+
+
+df_base_cofog<- #percorre todos os recursos do dataset para montar um único dataframe com os dados anuais com maio nível de detalhe
+  map_dfr(1:length(package[["resources"]]), function(a_pos){
+    print(a_pos)
+    if (substr(package[["resources"]][[a_pos]]$name,1,10)== "Base COFOG"){ #testa se é uma tabela dos dados anuais completa
+      tmp = tempfile(fileext = ".csv")
+      
+      URL_add<- package[["resources"]][[a_pos]]$url
+      
+      download.file(URL_add,mode = "wb", destfile = tmp, extra = "-R", method = "libcurl")
+      
+      df_cofog <- readr::read_csv2(tmp)
+      df_cofog <- janitor::clean_names(df_cofog)
+      df_cofog$natureza_despesa_detalhada <- as.character(df_cofog$natureza_despesa_detalhada)
+      df_cofog
+      
+    }
+    
+  })
+
+Base_COFOG<- df_base_cofog
+
+save(list=c("Base_COFOG"),file="COFOG.RData")
+
+
+
+##########################Versão 2022 para dados até 2022
+
+library(readxl)
+library(readr)
+library(ckanr)
+library(purrr)
+
+
+package<- ckanr::package_show(id= "22d13d17-bf69-4a1a-add2-25cc1e25f2d7", 
+                              url= "https://www.tesourotransparente.gov.br/ckan") #busca todos os dados do dataset que se refere aos dados de COFOG
+
+
+
+
+
+
+df_base_cofog<- #percorre todos os recursos do dataset para montar um único dataframe com os dados anuais com maio nível de detalhe
+  map_dfr(1:length(package[["resources"]]), function(a_pos){
+    print(a_pos)
+    if (substr(package[["resources"]][[a_pos]]$name,1,10)== "Base COFOG"){ #testa se é uma tabela dos dados anuais completa
+      tmp = tempfile(fileext = ".csv")
+      
+      URL_add<- package[["resources"]][[a_pos]]$url
+      
+      download.file(URL_add,mode = "wb", destfile = tmp, extra = "-R", method = "libcurl")
+      
+      df_cofog <- readr::read_csv2(tmp)
+      df_cofog <- janitor::clean_names(df_cofog)
+      df_cofog$natureza_despesa_detalhada <- as.character(df_cofog$natureza_despesa_detalhada)
+      df_cofog$modalidade_de_aplicacao_codigo <- as.character(df_cofog$modalidade_de_aplicacao_codigo)
+      
+      df_cofog
+      
+    }
+    
+  })
+
+Base_COFOG<- df_base_cofog
+
+save(list=c("Base_COFOG"),file="COFOG.RData")
